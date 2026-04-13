@@ -1,0 +1,14 @@
+ultralytics
+pycocotools
+opencv-python
+tqdm
+fastapi
+uvicorn[standard]
+sqlalchemy
+pymysql
+python-multipart
+aiofiles
+websockets
+pydantic
+cryptography
+Pillow

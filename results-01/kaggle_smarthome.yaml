@@ -1,0 +1,26 @@
+
+path: /kaggle/input/datasets/tomsffb/yolo11-smarthome-coco/SmartHome_COCO
+train: images/train
+val: images/val
+
+names:
+  0: chair
+  1: couch
+  2: potted plant
+  3: bed
+  4: dining table
+  5: toilet
+  6: tv
+  7: laptop
+  8: mouse
+  9: remote
+  10: keyboard
+  11: cell phone
+  12: microwave
+  13: oven
+  14: toaster
+  15: sink
+  16: refrigerator
+  17: book
+  18: clock
+  19: vase
