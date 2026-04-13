@@ -14,7 +14,7 @@ from collections import defaultdict
 from ultralytics import YOLO
 
 import config
-from database import SessionLocal
+import database
 from models import DetectionRecord, ObjectLastSeen, DetectionStat
 
 
@@ -314,7 +314,9 @@ class DetectionEngine:
 
     def _write_to_db(self, detections: List[Dict], snapshot_path: Optional[str]):
         """实际写入数据库的操作"""
-        db = SessionLocal()
+        if database.SessionLocal is None:
+            return
+        db = database.SessionLocal()
         try:
             now = datetime.now()
 
@@ -463,9 +465,9 @@ class DetectionEngine:
 
     def _write_push_to_db(self, detections: List[Dict], snapshot_path: Optional[str]):
         """推流模式写数据库（无追踪 ID，所有检出物品直接落库）"""
-        if SessionLocal is None:
+        if database.SessionLocal is None:
             return
-        db = SessionLocal()
+        db = database.SessionLocal()
         try:
             now = datetime.now()
 
