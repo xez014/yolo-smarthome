@@ -398,7 +398,7 @@ class DetectionEngine:
         """
         无状态单帧推理接口（供客户端推流模式使用）
         接受原始 JPEG 字节 → YOLO 推理 → 返回 (annotated_jpeg_bytes, detections)
-        不触发追踪持久化、不写数据库、不影响主引擎状态
+        同时将检测结果持久化到数据库（物品历史 + 统计）
         """
         if self.model is None:
             return None, []
@@ -416,7 +416,6 @@ class DetectionEngine:
             iou=config.IOU_THRESHOLD,
             imgsz=config.INPUT_SIZE,
             verbose=False,
-            device=config.DEVICE if config.DEVICE != "0" else "cpu"
         )
 
         # 解析结果（不含 track_id）
@@ -425,9 +424,120 @@ class DetectionEngine:
         # 绘制检测框
         annotated = self._draw_detections(frame, detections)
 
+        # 节流持久化：避免每帧都写库（最小间隔 DB_WRITE_INTERVAL 秒）
+        if detections:
+            self._persist_push_detections(detections, annotated)
+
         # 编码为 JPEG 字节
         _, buffer = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 75])
         return buffer.tobytes(), detections
+
+    def _persist_push_detections(self, detections: List[Dict], annotated_frame: np.ndarray):
+        """
+        客户端推流专用持久化入口
+        由于无追踪 ID，直接按物品类别写入，节流控制与主引擎共用阈值
+        """
+        now = time.time()
+
+        # 节流：与主引擎共用写入间隔配置
+        if now - self._last_db_write_time < config.DB_WRITE_INTERVAL:
+            return
+        self._last_db_write_time = now
+
+        # 快照保存
+        snapshot_path = None
+        if now - self._last_snapshot_time >= config.SNAPSHOT_INTERVAL:
+            self._last_snapshot_time = now
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            snap_name = f"push_{ts}.jpg"
+            snap_full = config.SNAPSHOTS_DIR / snap_name
+            cv2.imwrite(str(snap_full), annotated_frame)
+            snapshot_path = f"/snapshots/{snap_name}"
+
+        # 在新线程中写入数据库（不阻塞推理响应）
+        threading.Thread(
+            target=self._write_push_to_db,
+            args=(detections, snapshot_path),
+            daemon=True
+        ).start()
+
+    def _write_push_to_db(self, detections: List[Dict], snapshot_path: Optional[str]):
+        """推流模式写数据库（无追踪 ID，所有检出物品直接落库）"""
+        if SessionLocal is None:
+            return
+        db = SessionLocal()
+        try:
+            now = datetime.now()
+
+            for det in detections:
+                # 写检测记录
+                record = DetectionRecord(
+                    object_class=det["class_name"],
+                    class_id=det["class_id"],
+                    confidence=det["confidence"],
+                    bbox_x=det["bbox_x"],
+                    bbox_y=det["bbox_y"],
+                    bbox_w=det["bbox_w"],
+                    bbox_h=det["bbox_h"],
+                    track_id=None,
+                    snapshot_path=snapshot_path,
+                    detected_at=now,
+                    camera_id=config.CAMERA_ID,
+                )
+                db.add(record)
+
+                # UPSERT 物品最后出现位置
+                existing = db.query(ObjectLastSeen).filter_by(
+                    object_class=det["class_name"]
+                ).first()
+
+                if existing:
+                    existing.last_bbox_x = det["bbox_x"]
+                    existing.last_bbox_y = det["bbox_y"]
+                    existing.last_bbox_w = det["bbox_w"]
+                    existing.last_bbox_h = det["bbox_h"]
+                    existing.last_snapshot_path = snapshot_path or existing.last_snapshot_path
+                    existing.last_seen_at = now
+                    existing.total_count = (existing.total_count or 0) + 1
+                else:
+                    db.add(ObjectLastSeen(
+                        object_class=det["class_name"],
+                        class_id=det["class_id"],
+                        last_bbox_x=det["bbox_x"],
+                        last_bbox_y=det["bbox_y"],
+                        last_bbox_w=det["bbox_w"],
+                        last_bbox_h=det["bbox_h"],
+                        last_snapshot_path=snapshot_path,
+                        last_seen_at=now,
+                        total_count=1,
+                        camera_id=config.CAMERA_ID,
+                    ))
+
+                # 更新统计表
+                stat = db.query(DetectionStat).filter_by(
+                    stat_date=now.date(),
+                    stat_hour=now.hour,
+                    object_class=det["class_name"]
+                ).first()
+
+                if stat:
+                    stat.detection_count += 1
+                else:
+                    db.add(DetectionStat(
+                        stat_date=now.date(),
+                        stat_hour=now.hour,
+                        object_class=det["class_name"],
+                        detection_count=1
+                    ))
+
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            print(f"❌ 推流数据库写入失败: {e}")
+        finally:
+            db.close()
+
+
 
     def get_current_frame_bytes(self) -> Optional[bytes]:
         """获取当前帧的 JPEG 字节流（用于 MJPEG 推流）"""
