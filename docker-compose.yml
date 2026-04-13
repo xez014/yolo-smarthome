@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
+      network: host
     container_name: yolo_backend
     restart: always
     volumes:
@@ -19,6 +20,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      network: host
     container_name: yolo_frontend
     restart: always
     ports:
