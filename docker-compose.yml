@@ -12,9 +12,12 @@ services:
       - ./backend/data:/app/backend/data
       - ./backend/snapshots:/app/backend/snapshots
     # ports:
-    #   - "8000:8000" # Not needed for external exposure since Nginx handles it, but optionally enabled if direct API testing is needed.
+    #   - "8000:8000" # Not needed for external exposure since Nginx handles it
     environment:
       - TZ=Asia/Shanghai
+    networks:
+      - default
+      - 1panel-network
 
   frontend:
     build:
@@ -25,7 +28,13 @@ services:
     restart: always
     ports:
       - "10080:80"
-    depends_on:
-      - backend
     environment:
       - TZ=Asia/Shanghai
+    networks:
+      - default
+      - 1panel-network
+
+networks:
+  default:
+  1panel-network:
+    external: true
