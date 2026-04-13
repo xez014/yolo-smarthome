@@ -6,6 +6,12 @@ const routes = [
     redirect: '/dashboard'
   },
   {
+    path: '/setup',
+    name: 'Setup',
+    component: () => import('../views/SetupView.vue'),
+    meta: { title: '系统初始化' }
+  },
+  {
     path: '/dashboard',
     name: 'Dashboard',
     component: () => import('../views/DashboardView.vue'),
@@ -28,6 +34,26 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+import axios from 'axios'
+
+router.beforeEach(async (to, from, next) => {
+  try {
+    const res = await axios.get('/api/system/status')
+    const isSetup = res.data.is_setup
+    
+    if (!isSetup && to.path !== '/setup') {
+      next('/setup')
+    } else if (isSetup && to.path === '/setup') {
+      next('/dashboard')
+    } else {
+      next()
+    }
+  } catch (err) {
+    // 若请求连不通，说明可能正在启动，先放行或引至setup
+    next()
+  }
 })
 
 router.afterEach((to) => {

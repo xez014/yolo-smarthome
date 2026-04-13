@@ -1,0 +1,31 @@
+FROM python:3.11-slim
+
+# 安装系统依赖 (cv2和yolo等所需的核心底层库)
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 先拷贝 requirements.txt 进行依赖安装 (基于缓存层优化)
+COPY requirements.txt .
+
+# 增加通过 websocket 与前端通信的必备库
+RUN requirements_to_install=$(cat requirements.txt) && \
+    pip install --no-cache-dir $requirements_to_install websockets "uvicorn[standard]"
+
+# 拷贝后端代码与预训练模型
+COPY backend /app/backend
+COPY results-01 /app/results-01
+
+# 准备挂载所需的持久化文件夹
+RUN mkdir -p /app/backend/data /app/backend/snapshots
+
+WORKDIR /app/backend
+
+# 暴露 FastAPI 默认端口
+EXPOSE 8000
+
+# 运行后端
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

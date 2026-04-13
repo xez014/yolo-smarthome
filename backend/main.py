@@ -15,15 +15,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import CORS_ORIGINS, SNAPSHOTS_DIR
 from database import init_db
-from routers import video, detection, stats
-
+from routers import video, detection, stats, setup
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """应用生命周期管理：启动时初始化数据库，关闭时清理资源"""
+    """应用生命周期管理：启动时按需尝试初始化数据库，关闭时清理资源"""
     # === 启动 ===
     print("🚀 YOLO-SmartHome 后端服务启动中...")
-    init_db()
+    init_db()  # init_db internal logic now handles skipping if unconfigured
     print("✅ 服务就绪！")
     yield
     # === 关闭 ===
@@ -57,6 +56,7 @@ app.mount("/snapshots", StaticFiles(directory=str(SNAPSHOTS_DIR)), name="snapsho
 app.include_router(video.router)
 app.include_router(detection.router)
 app.include_router(stats.router)
+app.include_router(setup.router)
 
 
 @app.get("/", tags=["系统"])

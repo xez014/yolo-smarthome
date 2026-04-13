@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE = 'http://localhost:8000'
+const API_BASE = ''
 
 /**
  * 获取首页统计概览

@@ -1,7 +1,7 @@
 <template>
-  <div class="app-layout dark">
+  <div class="app-layout dark" :class="{ 'no-sidebar': isSetupPage }">
     <!-- 侧边栏 -->
-    <aside class="sidebar">
+    <aside class="sidebar" v-if="!isSetupPage">
       <div class="sidebar-header">
         <div class="sidebar-logo">
           <div class="logo-icon">🏠</div>
@@ -42,6 +42,12 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const isSetupPage = computed(() => route.path === '/setup')
+
 const navItems = [
   { path: '/dashboard', icon: '📡', label: '实时监控' },
   { path: '/search', icon: '🔍', label: '物品检索' },
@@ -51,4 +57,11 @@ const navItems = [
 
 <style scoped>
 /* App-level overrides are in global.css */
+.no-sidebar {
+  display: block; /* 取消 grid 布局 */
+}
+.no-sidebar .main-content {
+  padding: 0;
+  height: 100vh;
+}
 </style>

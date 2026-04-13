@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: yolo_backend
+    restart: always
+    volumes:
+      - ./backend/data:/app/backend/data
+      - ./backend/snapshots:/app/backend/snapshots
+    # ports:
+    #   - "8000:8000" # Not needed for external exposure since Nginx handles it, but optionally enabled if direct API testing is needed.
+    environment:
+      - TZ=Asia/Shanghai
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: yolo_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      - TZ=Asia/Shanghai

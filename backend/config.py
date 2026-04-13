@@ -12,15 +12,40 @@ WEIGHTS_PATH = str(PROJECT_ROOT / "results-01" / "runs" / "train_smarthome_s" / 
 SNAPSHOTS_DIR = BASE_DIR / "snapshots"
 SNAPSHOTS_DIR.mkdir(exist_ok=True)
 
-# === 数据库配置 ===
-DB_USER = os.getenv("DB_USER", "smarthome")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "20041122")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "3306")
-DB_NAME = os.getenv("DB_NAME", "smarthome_db")
+import json
 
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
+DB_CONFIG_FILE = BASE_DIR / "data" / "database_config.json"
+DB_CONFIG_FILE.parent.mkdir(exist_ok=True)
 
+def load_db_config():
+    if DB_CONFIG_FILE.exists():
+        try:
+            with open(DB_CONFIG_FILE, 'r') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_db_config(host, port, user, password, dbname):
+    config = {
+        "host": host, "port": port, "user": user, 
+        "password": password, "dbname": dbname
+    }
+    with open(DB_CONFIG_FILE, 'w') as f:
+        json.dump(config, f)
+
+def get_database_url():
+    cfg = load_db_config()
+    if not cfg:
+        # Fallback to env vars (backwards compatibility)
+        h = os.getenv("DB_HOST")
+        if not h: return None
+        cfg = {"host": h, "port": os.getenv("DB_PORT", "3306"),
+               "user": os.getenv("DB_USER", "smarthome"),
+               "password": os.getenv("DB_PASSWORD", "20041122"),
+               "dbname": os.getenv("DB_NAME", "smarthome_db")}
+               
+    return f"mysql+pymysql://{cfg['user']}:{cfg['password']}@{cfg['host']}:{cfg['port']}/{cfg['dbname']}?charset=utf8mb4"
 # === YOLO 检测配置 ===
 CONFIDENCE_THRESHOLD = 0.25         # 检测置信度阈值（降低以提高召回率）
 IOU_THRESHOLD = 0.5                 # NMS IoU 阈值

@@ -6,42 +6,50 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from config import DATABASE_URL
+from config import get_database_url
 
-# 创建数据库引擎
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,         # 自动检测断开的连接
-    pool_recycle=3600,          # 每小时回收连接
-    echo=False                  # 生产环境关闭 SQL 日志
-)
-
-# 会话工厂
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# ORM 基类
+engine = None
+SessionLocal = None
 Base = declarative_base()
+
+def init_engine():
+    global engine, SessionLocal
+    url = get_database_url()
+    if not url:
+        return False
+    
+    engine = create_engine(
+        url,
+        pool_size=10,
+        max_overflow=20,
+        pool_pre_ping=True,
+        pool_recycle=3600,
+        echo=False
+    )
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    return True
 
 
 def get_db():
-    """
-    FastAPI 依赖注入：获取数据库会话
-    使用方式: db: Session = Depends(get_db)
-    """
+    if SessionLocal is None:
+        init_engine()
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-
 def init_db():
-    """
-    初始化数据库：自动创建所有 ORM 模型对应的表
-    在 FastAPI 启动事件中调用
-    """
-    import models  # noqa: F401 — 确保 ORM 模型被注册
-    Base.metadata.create_all(bind=engine)
-    print("✅ 数据库表已自动创建/同步")
+    import models  # noqa: F401
+    if engine is None:
+        if not init_engine():
+            print("⚠️ 数据库连接尚未配置，跳过自动建表。")
+            return False
+            
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("✅ 数据库表已自动创建/同步")
+        return True
+    except Exception as e:
+        print(f"❌ 数据库建表失败，请检查配置: {e}")
+        return False

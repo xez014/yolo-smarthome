@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_BASE = 'http://localhost:8000'
+// 通过空字符串让通过 Nginx 的前端可以走相对路径，从而实现同域 API 转发免跨域
+const API_BASE = ''
 
 /**
  * 启动摄像头推理
@@ -32,10 +33,13 @@ export const VIDEO_STREAM_URL = `${API_BASE}/api/video/stream`
 
 /**
  * WebSocket 实时数据地址
+ * 在 Nginx 环境下，自动取当前 host
  */
-export const WS_URL = `ws://localhost:8000/api/video/ws`
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+export const WS_URL = `${protocol}//${window.location.host}/api/video/ws`
 
 /**
  * 快照基础 URL
+ * 空字符串表示从同域下加载 `/snapshots/...`
  */
-export const SNAPSHOT_BASE_URL = API_BASE
+export const SNAPSHOT_BASE_URL = ''
