@@ -54,10 +54,21 @@
       <!-- 左：视频播放器 -->
       <div class="video-section">
         <VideoPlayer
+          v-if="!isLocalMode"
           :is-running="engineStatus.is_running"
           :fps="realtimeData.fps"
           :object-count="realtimeData.current_objects"
           @start="handleStart"
+        />
+        <LocalStreamer
+          v-if="isLocalMode"
+          ref="localStreamerRef"
+          :mode="sourceType"
+          :active="isLocalStreaming"
+          @detections="onPushDetections"
+          @fps-update="onPushFps"
+          @started="isLocalStreaming = true"
+          @stopped="isLocalStreaming = false"
         />
         <!-- 控制条 -->
         <div class="control-bar glass-card" style="margin-top: 12px; padding: 16px 20px;">
@@ -100,7 +111,7 @@
               </el-input>
             </div>
 
-            <!-- 摄像头索引 -->
+            <!-- 摄像头索引（服务端摄像头） -->
             <div v-if="sourceType === 'webcam'" class="source-input-row">
               <el-input-number
                 v-model="cameraIndex"
@@ -110,7 +121,14 @@
                 style="width: 140px;"
               />
               <span style="font-size: 13px; color: var(--text-muted); margin-left: 8px;">
-                摄像头索引（0=默认摄像头）
+                摄像头索引（0=服务器默认摄像头）
+              </span>
+            </div>
+
+            <!-- 本地摄像头提示 -->
+            <div v-if="sourceType === 'local-webcam'" class="source-input-row">
+              <span style="font-size:13px; color: var(--text-secondary);">
+                📷 将使用您当前浏览器的摄像头推流至云端推理（需要 HTTPS）
               </span>
             </div>
           </div>
@@ -119,13 +137,22 @@
           <div class="control-actions">
             <div style="display: flex; align-items: center; gap: 12px;">
               <el-button
-                v-if="!engineStatus.is_running"
+                v-if="!engineStatus.is_running && !isLocalStreaming"
                 type="primary"
                 :icon="VideoCamera"
                 @click="handleStart"
                 size="large"
               >
                 启动检测
+              </el-button>
+              <el-button
+                v-else-if="isLocalStreaming"
+                type="danger"
+                :icon="VideoPause"
+                @click="handleLocalStop"
+                size="large"
+              >
+                停止推流
               </el-button>
               <el-button
                 v-else
@@ -161,6 +188,7 @@ import { VideoCamera, VideoPause } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 import VideoPlayer from '../components/VideoPlayer.vue'
+import LocalStreamer from '../components/LocalStreamer.vue'
 import DetectionPanel from '../components/DetectionPanel.vue'
 import { startDetection, stopDetection, getStatus, WS_URL } from '../api/video.js'
 import { getOverview } from '../api/stats.js'
@@ -177,15 +205,23 @@ const cameraIndex = ref(0)
 const videoFilePath = ref('')
 const rtspUrl = ref('')
 
+// 本地推流状态
+const localStreamerRef = ref(null)
+const isLocalStreaming = ref(false)
+const isLocalMode = computed(() => sourceType.value === 'local-webcam' || sourceType.value === 'local-video')
+
 const sourceOptions = [
-  { value: 'webcam', label: '本机摄像头', icon: '📷' },
-  { value: 'video',  label: '视频文件',   icon: '🎞️' },
-  { value: 'rtsp',   label: '网络流',     icon: '🌐' },
+  { value: 'webcam',       label: '服务器摄像头', icon: '🖥️' },
+  { value: 'video',        label: '服务器视频',   icon: '🎞️' },
+  { value: 'rtsp',         label: '网络流',       icon: '🌐' },
+  { value: 'local-webcam', label: '本地摄像头',   icon: '📷' },
+  { value: 'local-video',  label: '本地视频',     icon: '📂' },
 ]
 
 const statusLabel = computed(() => {
+  if (isLocalStreaming.value) return '📷 本地推流中 → 云端推理'
   if (!engineStatus.value.is_running) return '已停止'
-  const labels = { webcam: '📷 摄像头运行中', video: '🎞️ 视频文件播放中', rtsp: '🌐 网络流接入中' }
+  const labels = { webcam: '🖥️ 服务器摄像头', video: '🎞️ 视频文件播放中', rtsp: '🌐 网络流接入中' }
   return labels[engineStatus.value.source_type] || '运行中'
 })
 
@@ -250,7 +286,7 @@ function getSourceValue() {
     case 'webcam': return String(cameraIndex.value)
     case 'video':
       if (!videoFilePath.value.trim()) {
-        ElMessage.warning('请输入视频文件路径')
+        ElMessage.warning('请输入服务器视频文件路径')
         return null
       }
       return videoFilePath.value.trim()
@@ -266,13 +302,20 @@ function getSourceValue() {
 }
 
 async function handleStart() {
+  // 本地推流模式：启动 LocalStreamer
+  if (isLocalMode.value) {
+    localStreamerRef.value?.start()
+    return
+  }
+
+  // 服务端模式：原有逻辑
   const source = getSourceValue()
   if (source === null) return
 
   try {
     const res = await startDetection(source)
     if (res.data.status === 'started') {
-      const labels = { webcam: '摄像头', video: '视频文件', rtsp: '网络流' }
+      const labels = { webcam: '服务器摄像头', video: '服务器视频文件', rtsp: '网络流' }
       ElMessage.success(`${labels[sourceType.value] || ''}推理已启动`)
       engineStatus.value.is_running = true
       engineStatus.value.source_type = sourceType.value
@@ -284,6 +327,20 @@ async function handleStart() {
   } catch (e) {
     ElMessage.error('启动失败，请检查后端服务是否运行')
   }
+}
+
+async function handleLocalStop() {
+  localStreamerRef.value?.stop()
+}
+
+// 接收 LocalStreamer 推流检测结果，同步到实时检测面板
+function onPushDetections(dets) {
+  realtimeData.value.detections = dets
+  realtimeData.value.current_objects = dets.length
+}
+
+function onPushFps(val) {
+  realtimeData.value.fps = val
 }
 
 async function handleStop() {

@@ -68,6 +68,41 @@ async def websocket_endpoint(websocket: WebSocket):
         pass
 
 
+@router.websocket("/ws/push")
+async def push_inference_endpoint(websocket: WebSocket):
+    """
+    客户端推流推理 WebSocket
+    浏览器发送原始 JPEG 帧字节 → 服务端 YOLO 推理 → 返回 JSON {image: base64, detections: [...]}
+    """
+    await websocket.accept()
+    import base64
+    try:
+        while True:
+            # 接收来自浏览器的原始 JPEG 二进制帧
+            raw_bytes = await websocket.receive_bytes()
+
+            # 在推理引擎上执行无状态单帧推理
+            annotated_bytes, detections = engine_instance.infer_single_frame(raw_bytes)
+
+            if annotated_bytes is None:
+                await websocket.send_text(json.dumps({"error": "模型未加载"}))
+                continue
+
+            # 返回 base64 编码的标注帧 + 检测列表
+            b64_image = base64.b64encode(annotated_bytes).decode("utf-8")
+            await websocket.send_text(json.dumps({
+                "image": f"data:image/jpeg;base64,{b64_image}",
+                "detections": detections,
+                "current_objects": len(detections),
+            }, ensure_ascii=False))
+
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        print(f"Push WS error: {e}")
+
+
+
 @router.post("/start")
 async def start_detection(source: str = Query(default=None, description="视频源（摄像头索引或视频文件路径）")):
     """

@@ -394,6 +394,41 @@ class DetectionEngine:
         finally:
             db.close()
 
+    def infer_single_frame(self, raw_bytes: bytes):
+        """
+        无状态单帧推理接口（供客户端推流模式使用）
+        接受原始 JPEG 字节 → YOLO 推理 → 返回 (annotated_jpeg_bytes, detections)
+        不触发追踪持久化、不写数据库、不影响主引擎状态
+        """
+        if self.model is None:
+            return None, []
+
+        # 解码图片
+        nparr = np.frombuffer(raw_bytes, np.uint8)
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if frame is None:
+            return None, []
+
+        # 推理（不使用 track，避免与主引擎的追踪状态产生干扰）
+        results = self.model.predict(
+            frame,
+            conf=config.CONFIDENCE_THRESHOLD,
+            iou=config.IOU_THRESHOLD,
+            imgsz=config.INPUT_SIZE,
+            verbose=False,
+            device=config.DEVICE if config.DEVICE != "0" else "cpu"
+        )
+
+        # 解析结果（不含 track_id）
+        detections = self._parse_results(results, frame)
+
+        # 绘制检测框
+        annotated = self._draw_detections(frame, detections)
+
+        # 编码为 JPEG 字节
+        _, buffer = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 75])
+        return buffer.tobytes(), detections
+
     def get_current_frame_bytes(self) -> Optional[bytes]:
         """获取当前帧的 JPEG 字节流（用于 MJPEG 推流）"""
         with self._frame_lock:
@@ -418,3 +453,5 @@ class DetectionEngine:
 
 # 全局引擎实例
 engine_instance = DetectionEngine()
+
+
