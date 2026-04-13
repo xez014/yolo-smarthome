@@ -320,6 +320,7 @@ class DetectionEngine:
         try:
             now = datetime.now()
 
+            class_groups = {}
             for det in detections:
                 tid = det.get("track_id")
 
@@ -343,51 +344,56 @@ class DetectionEngine:
                 )
                 db.add(record)
 
-                # 更新物品最后出现位置（UPSERT）
-                existing = db.query(ObjectLastSeen).filter_by(
-                    object_class=det["class_name"]
-                ).first()
+                cls_name = det["class_name"]
+                if cls_name not in class_groups:
+                    class_groups[cls_name] = {"count": 0, "last_det": det}
+                class_groups[cls_name]["count"] += 1
+                class_groups[cls_name]["last_det"] = det
 
+            for cls_name, group in class_groups.items():
+                count = group["count"]
+                last_det = group["last_det"]
+
+                # 更新物品最后出现位置
+                existing = db.query(ObjectLastSeen).filter_by(object_class=cls_name).first()
                 if existing:
-                    existing.last_bbox_x = det["bbox_x"]
-                    existing.last_bbox_y = det["bbox_y"]
-                    existing.last_bbox_w = det["bbox_w"]
-                    existing.last_bbox_h = det["bbox_h"]
+                    existing.last_bbox_x = last_det["bbox_x"]
+                    existing.last_bbox_y = last_det["bbox_y"]
+                    existing.last_bbox_w = last_det["bbox_w"]
+                    existing.last_bbox_h = last_det["bbox_h"]
                     existing.last_snapshot_path = snapshot_path or existing.last_snapshot_path
                     existing.last_seen_at = now
-                    existing.total_count = (existing.total_count or 0) + 1
+                    existing.total_count = (existing.total_count or 0) + count
                 else:
-                    last_seen = ObjectLastSeen(
-                        object_class=det["class_name"],
-                        class_id=det["class_id"],
-                        last_bbox_x=det["bbox_x"],
-                        last_bbox_y=det["bbox_y"],
-                        last_bbox_w=det["bbox_w"],
-                        last_bbox_h=det["bbox_h"],
+                    db.add(ObjectLastSeen(
+                        object_class=cls_name,
+                        class_id=last_det["class_id"],
+                        last_bbox_x=last_det["bbox_x"],
+                        last_bbox_y=last_det["bbox_y"],
+                        last_bbox_w=last_det["bbox_w"],
+                        last_bbox_h=last_det["bbox_h"],
                         last_snapshot_path=snapshot_path,
                         last_seen_at=now,
-                        total_count=1,
+                        total_count=count,
                         camera_id=config.CAMERA_ID,
-                    )
-                    db.add(last_seen)
+                    ))
 
                 # 更新统计表
                 stat = db.query(DetectionStat).filter_by(
                     stat_date=now.date(),
                     stat_hour=now.hour,
-                    object_class=det["class_name"]
+                    object_class=cls_name
                 ).first()
 
                 if stat:
-                    stat.detection_count += 1
+                    stat.detection_count += count
                 else:
-                    stat = DetectionStat(
+                    db.add(DetectionStat(
                         stat_date=now.date(),
                         stat_hour=now.hour,
-                        object_class=det["class_name"],
-                        detection_count=1
-                    )
-                    db.add(stat)
+                        object_class=cls_name,
+                        detection_count=count
+                    ))
 
             db.commit()
         except Exception as e:
@@ -471,8 +477,9 @@ class DetectionEngine:
         try:
             now = datetime.now()
 
+            class_groups = {}
             for det in detections:
-                # 写检测记录
+                # 写入基础记录
                 record = DetectionRecord(
                     object_class=det["class_name"],
                     class_id=det["class_id"],
@@ -488,30 +495,37 @@ class DetectionEngine:
                 )
                 db.add(record)
 
-                # UPSERT 物品最后出现位置
-                existing = db.query(ObjectLastSeen).filter_by(
-                    object_class=det["class_name"]
-                ).first()
+                cls_name = det["class_name"]
+                if cls_name not in class_groups:
+                    class_groups[cls_name] = {"count": 0, "last_det": det}
+                class_groups[cls_name]["count"] += 1
+                class_groups[cls_name]["last_det"] = det
 
-                if existing:
-                    existing.last_bbox_x = det["bbox_x"]
-                    existing.last_bbox_y = det["bbox_y"]
-                    existing.last_bbox_w = det["bbox_w"]
-                    existing.last_bbox_h = det["bbox_h"]
-                    existing.last_snapshot_path = snapshot_path or existing.last_snapshot_path
-                    existing.last_seen_at = now
-                    existing.total_count = (existing.total_count or 0) + 1
+            for cls_name, group in class_groups.items():
+                count = group["count"]
+                last_det = group["last_det"]
+
+                # 更新最后出现位置
+                existing_seen = db.query(ObjectLastSeen).filter_by(object_class=cls_name).first()
+                if existing_seen:
+                    existing_seen.last_bbox_x = last_det["bbox_x"]
+                    existing_seen.last_bbox_y = last_det["bbox_y"]
+                    existing_seen.last_bbox_w = last_det["bbox_w"]
+                    existing_seen.last_bbox_h = last_det["bbox_h"]
+                    existing_seen.last_snapshot_path = snapshot_path or existing_seen.last_snapshot_path
+                    existing_seen.last_seen_at = now
+                    existing_seen.total_count = (existing_seen.total_count or 0) + count
                 else:
                     db.add(ObjectLastSeen(
-                        object_class=det["class_name"],
-                        class_id=det["class_id"],
-                        last_bbox_x=det["bbox_x"],
-                        last_bbox_y=det["bbox_y"],
-                        last_bbox_w=det["bbox_w"],
-                        last_bbox_h=det["bbox_h"],
+                        object_class=cls_name,
+                        class_id=last_det["class_id"],
+                        last_bbox_x=last_det["bbox_x"],
+                        last_bbox_y=last_det["bbox_y"],
+                        last_bbox_w=last_det["bbox_w"],
+                        last_bbox_h=last_det["bbox_h"],
                         last_snapshot_path=snapshot_path,
                         last_seen_at=now,
-                        total_count=1,
+                        total_count=count,
                         camera_id=config.CAMERA_ID,
                     ))
 
@@ -519,17 +533,17 @@ class DetectionEngine:
                 stat = db.query(DetectionStat).filter_by(
                     stat_date=now.date(),
                     stat_hour=now.hour,
-                    object_class=det["class_name"]
+                    object_class=cls_name
                 ).first()
 
                 if stat:
-                    stat.detection_count += 1
+                    stat.detection_count += count
                 else:
                     db.add(DetectionStat(
                         stat_date=now.date(),
                         stat_hour=now.hour,
-                        object_class=det["class_name"],
-                        detection_count=1
+                        object_class=cls_name,
+                        detection_count=count
                     ))
 
             db.commit()
