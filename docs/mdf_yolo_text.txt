@@ -1,0 +1,1549 @@
+Academic Editor: Bruce Henry
+Received: 2 September 2025
+Revised: 3 October 2025
+Accepted: 14 October 2025
+Published: 18 October 2025
+Citation: Luan, F.; Yang, J.; Zhang, H.
+MDF-YOLO: A Hölder-Based
+Regularity-Guided Multi-Domain
+Fusion Detection Model for Indoor
+Objects. Fractal Fract. 2025, 9, 673.
+https://doi.org/10.3390/
+fractalfract9100673
+Copyright: © 2025 by the authors.
+Licensee MDPI, Basel, Switzerland.
+This article is an open access article
+distributed under the terms and
+conditions of the Creative Commons
+Attribution (CC BY) license
+(https://creativecommons.org/
+licenses/by/4.0/).
+Article
+MDF-YOLO: A Hölder-Based Regularity-Guided Multi-Domain
+Fusion Detection Model for Indoor Objects
+Fengkai Luan
+ , Jiaxing Yang
+ and Hu Zhang *
+School of Information Engineering, Wuhan University of Technology, Wuhan 430070, China
+* Correspondence: huzhang@whut.edu.cn
+Abstract
+With the rise of embodied agents and indoor service robots, object detection has become a
+critical component supporting semantic mapping, path planning, and human–robot inter-
+action. However, indoor scenes often face challenges such as severe occlusion, large-scale
+variations, small and densely packed objects, and complex textures, making existing meth-
+ods struggle in terms of both robustness and accuracy. This paper proposes MDF-YOLO,
+a multi-domain fusion detection framework based on Hölder regularity guidance. In the
+backbone, neck, and feature recovery stages, the framework introduces the CrossGrid Mem-
+ory Block, Hölder-Based Regularity Guidance–Hierarchical Context Aggregation module,
+and Frequency-Guided Residual Block, achieving complementary feature modeling across
+the state space, spatial domain, and frequency domain. In particular, the HG-HCA module
+uses the Hölder regularity map as a guiding signal to balance the dynamic equilibrium
+between the macro and micro paths, thus achieving adaptive coordination between global
+consistency and local discriminability. Experimental results show that MDF-YOLO signif-
+icantly outperforms mainstream detectors in metrics such as mAP@0.5, mAP@0.75, and
+mAP@0.5:0.95, achieving values of 0.7158, 0.6117, and 0.5814, respectively, while main-
+taining near real-time inference efficiency in terms of FPS and latency. Ablation studies
+further validate the independent and synergistic contributions of CGMB, HG-HCA, and
+FGRB in improving small-object detection, occlusion handling, and cross-scale robustness.
+This study demonstrates the potential of Hölder regularity and multi-domain fusion mod-
+eling in object detection, offering new insights for efficient visual modeling in complex
+indoor environments.
+Keywords: indoor object detection; Hölder regularity; multi-domain fusion; context
+aggregation; frequency-domain detail recovery
+1. Introduction
+With the rapid progress of artificial intelligence and robotics, embodied agents—
+intelligent systems capable of autonomously perceiving their surroundings, making de-
+cisions, and executing actions are increasingly integrated into daily life [ 1,2]. In indoor
+environments, devices such as service robots and cleaning robots are widely deployed,
+relying heavily on accurate visual perception to support tasks such as autonomous navi-
+gation, human–robot interaction, and scene understanding [3,4]. Within this framework,
+object detection plays a central role by identifying and localizing objects, thereby providing
+critical spatial and semantic information for downstream modules including semantic map
+construction [5,6], path planning [7,8], and task-level decision-making [9]. Thus, develop-
+Fractal Fract. 2025, 9, 673 https://doi.org/10.3390/fractalfract9100673
+
+Fractal Fract. 2025, 9, 673 2 of 31
+ing indoor object detection algorithms that are both highly accurate and robust is crucial
+for improving the overall reliability and effectiveness of embodied agents.
+Nevertheless, the inherent complexity of indoor environments poses substantial chal-
+lenges for object detection [10]. First, objects are often subject to severe occlusion and clutter,
+fragmenting their features and demanding strong global reasoning ability from models [11].
+Second, the dramatic scale variation from large pieces of furniture to small tabletop items
+requires effective multi-scale representation and fusion [12]. Third, the recognition of small
+objects depends heavily on high-frequency details such as edges and textures, which are
+frequently degraded or lost during the down-sampling process of deep convolutional
+networks, leading to missed or false detections [13]. Consequently, addressing global con-
+textual reasoning, scale adaptation, and fine-detail preservation simultaneously remains
+the central difficulty in indoor object detection.
+To address the challenges of general-purpose object detection, detectors centered
+around Convolutional Neural Networks (CNNs) have undergone continuous evolution
+over the past decade [ 14]. Among these, single-stage detectors have become dominant
+in real-time applications due to their streamlined and efficient design. The trajectory
+of their research and development has consistently sought a balance between accuracy
+and efficiency. This evolution spans from YOLO, which unified detection as a regression
+problem [15], and RetinaNet, which introduced Focal Loss to effectively resolve the extreme
+imbalance between positive and negative samples [16], to the rise of anchor-free methods
+like FCOS [17]. The performance and paradigms of single-stage detectors have been per-
+petually innovating. Concurrently, driven by the demand for mobile and edge computing,
+lightweight backbones such as MobileNet and ShuffleNet have been extensively researched
+and applied [18], giving rise to detectors like EfficientDet, which exhibit outstanding perfor-
+mance on resource-constrained platforms [19]. Despite their widespread success in object
+detection, CNNs inherently operate within limited receptive fields, introducing the local in-
+ductive bias [20]. This means that CNNs are highly effective at capturing fine-grained local
+features such as edges and textures, but they struggle to model long-range dependencies
+between distant regions in an image—for example, recognizing the association between a
+table surface and its legs when they appear far apart. While this bias improves efficiency in
+learning local patterns, it hampers the ability of CNN-based detectors to perform holistic
+reasoning in complex indoor scenes, thereby reducing their robustness to severe occlusion
+and scale variation.
+To overcome the locality bottleneck of CNNs, vision Transformer architectures, epit-
+omized by ViT, have emerged. Their core self-attention mechanism is highly effective at
+capturing global context. Building upon this, the DETR framework reformulated object
+detection as an end-to-end set prediction problem [21]. However, the powerful global mod-
+eling capability of Transformers comes at a significant computational cost. The complexity
+of their self-attention mechanism grows quadratically with input resolution, leading to
+prohibitive training and inference overheads at high resolutions [22], making it difficult to
+meet the stringent real-time requirements of indoor applications.
+In response to the aforementioned challenges, current research trajectories primarily
+encompass several key directions. On one hand, researchers are dedicated to exploring
+more efficient mechanisms for modeling long-range dependencies. These range from
+various novel attention modules to the recently prominent State Space Models (SSMs)
+in the vision domain [ 23,24], all aiming to achieve global contextual awareness while
+maintaining linear computational complexity. On the other hand, the academic community
+is investigating more sophisticated multi-scale feature interaction and fusion modules.
+This includes enhancing key feature representations through techniques like attention
+mechanisms [25] or incorporating multi-modal information, such as 3D point clouds, to
+
+Fractal Fract. 2025, 9, 673 3 of 31
+aid in understanding complex spatial relationships [ 26]. Furthermore, approaching the
+problem from novel perspectives, such as the frequency domain, by explicitly compensating
+for features to recover details lost during network propagation, has also become an effective
+strategy for improving the performance of small object detection [27].
+Based on the preceding analysis, this paper proposes MDF-YOLO, a multi-domain
+fusion object detector tailored for indoor scenes. Our objective is to systematically address
+the core challenges of indoor detection through a synergistically optimized solution that
+achieves performance breakthroughs in global context modeling, multi-scale fusion, and
+detail recovery, all while preserving real-time efficiency. The primary contributions of this
+paper are as follows:
+1. We design a novel backbone network module named the CrossGrid Memory Block
+(CGMB). This module integrates state-space modeling and local convolutional path-
+ways in parallel, capturing global context and long-range spatial dependencies with
+linear complexity via an orthogonal grid memory mechanism, thereby effectively
+addressing issues of severe occlusion.
+2. We propose the Hölder-Based Regularity Guidance-Hierarchical Context Aggregation
+(HG-HCA) module. This module integrates macro- and micro-context pathways under
+the guidance of a Hölder-based regularity prior, where a differentiable regularity map
+is computed to characterize local smoothness and roughness. Through a lightweight
+calibration mechanism, the regularity map is transformed into task-oriented per-pixel
+guidance signals. This design enables the network to dynamically balance global
+structural consistency and local discriminative detail, thereby improving robustness
+against large-scale variations, complex textures, and dense occlusion in indoor scenes.
+3. We introduce an up-sampling module named the Frequency-Guided Residual Block
+(FGRB). This module augments the spatial up-sampling path with a parallel frequency-
+domain compensation path. It enhances high-frequency components using a learnable
+frequency weight matrix and restores image details in a residual manner, thereby
+improving detection performance for small objects.
+Extensive experimental results on a public indoor scene dataset demonstrate that
+MDF-YOLO surpasses existing mainstream methods in both accuracy and efficiency, val-
+idating the effectiveness and novelty of the proposed multi-domain fusion-based object
+detection network.
+2. Related Work
+2.1. T raditional Rule-Based and Handcrafted Feature Methods
+Prior to the widespread adoption of deep learning, research in indoor object detec-
+tion was predominantly characterized by sensor-driven geometric rule-based methods
+and computer vision approaches based on handcrafted features. Sensor-based methods
+utilized geometric information acquired from ultrasound, infrared, and laser rangefinders
+to ensure motion safety through local avoidance and path correction. The ultrasonic obsta-
+cle avoidance framework by Borenstein and Koren achieved stable avoidance under low
+computational constraints through continuous rangefinding and wall-following strategies,
+suppressing oscillatory behaviors in “trap regions” via vector field synthesis [28]. The oc-
+cupancy grid map proposed by Moravec and Elfes introduced a grid-based environmental
+representation with a Bayesian update mechanism, enabling recursive estimation of spatial
+occupancy probabilities under noisy rangefinding conditions and providing a unified
+representation for indoor mapping and obstacle perception [29]. The probabilistic robotics
+framework by Thrun et al. integrated localization, mapping, and decision-making into a
+unified Bayesian inference framework, maintaining global consistency amidst multi-sensor
+noise and dynamic occlusions, thereby supporting early indoor mobile robots in reasoning
+
+Fractal Fract. 2025, 9, 673 4 of 31
+about spatial accessibility and safety [30]. This line of research offered the advantages of
+high real-time performance and implementation simplicity at the geometric level, but it
+lacked the capability to characterize object categories, semantic attributes, and fine-grained
+boundaries, thus failing to meet the demands of subsequent indoor detection tasks.
+As image sensors and computational platforms matured, the research focus shifted
+towards a detection paradigm composed of manually designed visual features and shallow
+discriminative classifiers. Lowe’s SIFT performed keypoint detection in scale-space and
+represented appearance using orientation-aligned local gradient histograms, demonstrat-
+ing robustness to viewpoint and illumination changes and establishing the foundation
+for recognition based on local invariant features [ 31]. Bay et al.’s SURF approximated
+Hessian responses using integral images and box filters, substantially reducing descriptor
+computation costs and significantly improving real-time performance while maintaining
+robustness [32]. The cascaded Boosting framework by Viola and Jones utilized Haar-like
+features and a cascade of weak classifiers to achieve high-speed sliding-window detec-
+tion, attaining near real-time performance on rigid objects like faces and propelling early
+embedded vision applications [ 33]. Dalal and Triggs’ HOG eliminated illumination ef-
+fects through gradient statistics normalized within cells and blocks, enhancing pedestrian
+detection recall and precision via a linear SVM and becoming a standard configuration
+for sliding-window detection [ 34]. The Deformable Part Model by Felzenszwalb et al.
+performed discriminative training under geometric deformation constraints between a root
+template and part templates, significantly enhancing detection performance for non-rigid
+objects and under occlusion, and showing strong adaptability to intra-class variations
+in complex indoor layouts [ 35]. In subsequent work, Dalal, Triggs, and Schmid jointly
+modeled appearance gradients and optical flow orientation histograms, which markedly
+improved the robustness of human detection in video sequences under dynamic scenes,
+showcasing the complementary benefits of appearance and motion cues [36]. This approach
+could provide interpretable mid-level representations and robust discriminative boundaries
+on indoor images, but it still faced significant bottlenecks in cross-domain generalization,
+complex occlusion, and extreme scale variations.
+The popularization of RGB-D sensors led to the widespread adoption of 3D geometric
+features in indoor object recognition and localization, with traditional methods representing
+and matching targets using local surface geometry or multi-modal templates. The Spin
+Image by Johnson and Hebert formed a 2D projection histogram from surface normals
+and projection distances, achieving high-recall matching of 3D parts in cluttered and
+partially occluded scenes and providing a reusable descriptor for rigid instance recognition
+in indoor environments [37]. Rusu et al.’s FPFH computed fast normal-related statistics
+within the k-neighborhood of a point cloud and reduced coupling term overhead, achieving
+an excellent efficiency-accuracy trade-off in large-scale point cloud feature matching and
+pose estimation tasks, well-suited for the real-time requirements of indoor recognition
+and registration [38]. Hinterstoisser et al.’s LINEMOD employed multi-modal template
+matching based on gradient orientation and surface normals to achieve rapid detection
+and pose estimation of texture-less objects. It maintained a stable detection rate in indoor
+scenes with strong occlusion, high reflectance, and cluttered backgrounds, demonstrating
+practical engineering applicability [39]. These 3D and multi-modal traditional methods
+possess unique advantages in structure recovery and pose estimation, but they still rely on
+meticulous design and extensive parameter tuning for cross-view generalization, template
+scale management, and inter-class separability.
+Traditional methods based on rules and handcrafted features established a technologi-
+cal trajectory for indoor object detection, progressing from geometric obstacle avoidance to
+semantic discrimination and 3D matching, and could achieve reliable performance under
+
+Fractal Fract. 2025, 9, 673 5 of 31
+controlled conditions and for specific targets. However, these methods, relying on human
+priors and fixed-structure representations, are prone to performance degradation when
+confronted with occlusion, multi-scale challenges, and appearance diversity in indoor
+environments, which prompted a research shift towards detection paradigms that are
+automatically learnable and end-to-end optimizable.
+2.2. General-Purpose Deep Learning Models
+Deep learning has catalyzed a paradigm shift in object detection from handcrafted
+features and shallow classifiers to end-to-end learnable representations. R-CNN combined
+region proposal generation with CNN feature learning, significantly elevating detection
+accuracy on general-purpose datasets and establishing a baseline for deep feature-centric
+detection [40]. SPP-Net extracted regional features from a shared feature map via spatial
+pyramid pooling, circumventing the expense of redundant forward passes over the entire
+image; however, its training pipeline was not fully end-to-end, a concept that laid the
+groundwork for subsequent unified detection frameworks [41]. Fast R-CNN introduced RoI
+Pooling and a multi-task loss to jointly optimize bounding box classification and regression
+on a shared feature map, realizing efficient end-to-end training (with the exception of region
+proposal generation) and striking a better balance between accuracy and efficiency [ 42].
+Faster R-CNN, through the synergy of a Region Proposal Network and a detection network,
+integrated region proposal generation into the main network, thus unifying the two-stage
+detection paradigm and enabling joint training, which solidified its mainstream position for
+high-accuracy detection [43]. Mask R-CNN augmented the two-stage architecture with an
+additional branch for simultaneous instance segmentation, improving spatial localization
+precision with an aligned RoI operation while maintaining excellent extensibility [44].
+In the pursuit of real-time performance, single-stage detectors replaced the region
+proposal mechanism with dense prediction. SSD performed direct classification and re-
+gression on multi-scale feature maps, balancing speed and accuracy to become a common
+baseline for mobile deployments [45]. The YOLO series formulated detection as a unified
+regression problem and, based on this framework, significantly improved stability and
+accuracy through enhancements such as anchor boxes and batch normalization [ 46]. It
+strengthened its coverage of differently sized objects via multi-scale prediction and deeper
+backbone networks [47], with subsequent work further refining feature aggregation and
+training strategies to enhance robustness and usability [48]. The issue of extreme positive–
+negative sample imbalance in single-stage frameworks was mitigated by the Focal Loss,
+which improved detection performance on small and hard examples while maintaining
+high efficiency [16]. In terms of model scalability, EfficientDet employed a compound
+scaling strategy coupled with a high-efficiency bidirectional feature pyramid, achieving an
+integrated design scalable from resource-constrained devices to server-side applications
+and demonstrating outstanding performance in the accuracy–efficiency trade-off [49].
+General-purpose detectors have achieved a significant leap in performance over tra-
+ditional methods on public datasets, yet their design philosophy is often geared towards
+generic scenarios. In indoor environments, the local inductive bias of convolution limits
+the ability for global reasoning on severely occluded and cluttered objects. Down-sampling
+and high-level abstraction lead to the attenuation of high-frequency edges and textures
+during propagation, thereby impairing the discriminability of small objects. Although
+multi-scale feature fusion can alleviate the semantic gap caused by scale variations, it re-
+mains insufficient for the extreme scale distributions found indoors, from large furniture to
+minute items. These issues have become recognized challenges in indoor detection, driving
+research to undertake targeted explorations in the directions of global context modeling,
+cross-scale fusion, and detail recovery [12,13].
+
+Fractal Fract. 2025, 9, 673 6 of 31
+2.3. Explorations T argeting Challenges in Indoor Scenes
+While general-purpose detectors have established a strong technical baseline, their bot-
+tlenecks in indoor applications have become increasingly apparent. Three issues dominate
+in this setting—severe occlusion, extreme scale variation, and the loss of fine details—which
+have in turn stimulated extensive research along three directions: global context modeling,
+cross-scale semantic alignment, and detail restoration. These lines of work offer diverse
+technical paths for tackling the key difficulties of indoor scenes, yet they also reveal several
+common limitations in terms of efficiency, stability, and deployability.
+In global context modeling under occlusion and crowding, relational reasoning and
+structural priors are widely used to compensate for the locality of convolutions. Relation
+Networks reweight the relationships among candidate regions to alleviate semantic loss
+and improve localization consistency, but region-level relation graphs incur non-negligible
+computational and memory overhead in dense scenes and are sensitive to the quality of
+candidate generation [50]. Occlusion-aware R-CNN combines aggregation losses with part
+visibility modeling to reduce missed detections under group occlusions; however, part-level
+annotations and visibility labels increase data production costs, and robustness remains
+limited under cross-category transfer [ 51]. Context-Aware CompositionalNets enhance
+interpretability under occlusion through part–whole compositional representations, yet
+they rely on relatively stable structural priors and adapt less effectively to non-rigid objects
+or categories with large appearance variation [52]. At the post-processing level, Soft-NMS
+replaces hard suppression with continuous score decay to improve recall and precision
+in crowded scenes, but it cannot fundamentally remedy the insufficient characterization
+of long-range dependencies at the feature level [53]. Overall, this line of work has direct
+value for complex indoor stacking, but introducing efficient long-range dependencies while
+preserving 2D topology remains a central challenge.
+In cross-scale variation and semantic alignment, feature pyramids and scale-aware
+training continue to evolve to cover the span from large furniture to tiny devices. ASFF
+learns spatially adaptive fusion weights to ease spatial misalignment across feature levels
+and can enhance scale robustness with low additional cost, yet it still tends to favor
+particular levels under extremely long-tailed scale distributions [54]. NAS-FPN discovers
+efficient topologies in the space of cross-level connections via neural architecture search,
+unifying top-down and bottom-up information flows; however, search costs and hardware
+dependencies are substantial, and practical deployment requires rebalancing complexity
+and gains across platforms [55]. TridentNet employs multi-branch convolutional paths with
+different receptive fields and scale-aware training to improve stability at extreme scales;
+although branches can be pruned at inference to control cost, multi-branch training still
+brings significant memory and optimization burdens [56]. At the proposal stage, Guided
+Anchoring reduces invalid candidates with learnable priors and position guidance and is
+more friendly to objects with diverse aspect ratios, but dependence on anchor assumptions
+and data distributions persists [57]. In summary, efficient and stable cross-level semantic
+alignment remains challenging on indoor datasets with long-tailed scales and diverse
+shapes, and the balance between complexity and benefit is not consistent across resolutions
+and hardware.
+In detail preservation and small-object visibility, upsampling operators and frequency-
+domain attention are used to restore high-frequency textures and edges, and they com-
+plement geometric modalities. CARAFE adopts content-aware reassembly kernels that
+are more favorable to boundaries and textures than fixed interpolation or transposed
+convolution, but the extra operators and buffering required for kernel prediction must
+be carefully evaluated for real-time scenarios [58]. FcaNet generalizes channel attention
+compression to the frequency domain and introduces multi-spectrum attention to enhance
+
+Fractal Fract. 2025, 9, 673 7 of 31
+high-frequency responses for detail-sensitive categories; however, alignment between fre-
+quency enhancement and task features still relies on heuristic design, and controlling edge
+artifacts and ringing effects requires additional regularization and implementation care [59].
+Along the multimodal route, VoteNet and its extensions perform 3D detection via spatial
+voting in point clouds and hybrid geometric primitives; ImVoteNet aligns image-space
+votes with camera parameters to improve detection of occluded and small objects; H3DNet
+and 3DETR demonstrate competitiveness under 3D priors and end-to-end Transformer
+designs [60–63]; Deep Sliding Shapes earlier established a feasible paradigm for amodal 3D
+object detection in RGB-D scenes through voxelized 3D convolutions and a 3D RPN [64].
+This route shows clear advantages under indoor conditions such as low light, reflective
+materials, and near-field occlusion, yet in practice it imposes higher requirements on depth-
+sensor availability, cross-modal calibration, and inference latency, limiting deployment on
+some platforms.
+Beyond the above threads, explicit modeling of local regularity has attracted growing
+attention. Differentiable measures of local regularity can provide a complementary sig-
+nal to saliency or attention mechanisms by distinguishing texture-smooth regions from
+edge/detail-rich regions, and by offering pixel-wise lightweight references for global consis-
+tency constraints and the strengthening of local discrimination. Compared with data-driven
+attention learning, such regularity priors supply interpretable spatial guidance at low ad-
+ditional cost, and show potential in indoor scenes where occlusion, scale variation, and
+competition for high-frequency details coexist [65]. Although existing work offers effective
+paths for global context, cross-scale fusion, and multi-domain detail restoration, several
+challenges remain prevalent: first, introducing long-range dependencies often conflicts
+with preserving 2D topology, and computational and memory costs grow rapidly with
+scene density; second, cross-level semantic alignment lacks efficiency and stability under
+long-tailed scales and diverse shapes, and the complexity–benefit trade-off is hard to stan-
+dardize across platforms; third, systematic approaches to aligning high-frequency detail
+compensation with task features are still lacking, and frequency enhancement or improved
+upsampling is sensitive to artifact control and implementation details; fourth, multimodal
+and 3D solutions face higher barriers in device availability and deployment latency. Based
+on these shared gaps, subsequent work needs to coordinate global modeling, cross-scale
+alignment, and detail restoration within a unified and efficient framework, and introduce
+lightweight and learnable local-regularity priors as spatial guidance, so as to improve
+robustness and generalization in indoor scenes while maintaining real-time performance.
+3. Methodology
+3.1. MDF-YOLO Network Architecture
+Indoor object detection tasks, particularly under severe occlusion, large-scale varia-
+tions, and dense distributions of small objects, impose higher demands on the multi-level
+feature modeling capacity of detectors. In recent years, the YOLO family of detectors has
+become the standard for real-time detection owing to its single-stage design, end-to-end
+regression paradigm, and well-recognized balance between speed and accuracy. Among
+them, YOLOv8 features a mature modular design of backbone, neck, and detection head,
+achieving a strong trade-off between accuracy and inference efficiency on generic bench-
+marks, while also offering clear advantages in engineering deployment and lightweight
+extensibility. Consequently, it has been widely adopted as the baseline architecture for
+subsequent improvements. Despite its competitive performance on large-scale datasets,
+YOLOv8 still relies heavily on convolutional operations in the backbone, limiting its abil-
+ity to capture long-range dependencies; its neck fusion strategy lacks a dynamic balance
+between macro- and micro-contexts; and its up-sampling operators often incur a loss of
+
+Fractal Fract. 2025, 9, 673 8 of 31
+high-frequency details during feature recovery. To address these interrelated challenges,
+we propose Multi-Domain Fusion YOLO (MDF-YOLO), which introduces the CGMB, HG-
+HCA module, and FGRB into the backbone, neck, and high-resolution recovery stages,
+respectively. Together, these modules establish complementary feature modeling across the
+state-space, spatial, and frequency domains. This design enhances global–local collabora-
+tive reasoning and ensures consistency between structural layouts and fine-grained details,
+outperforming alternative approaches that rely on a single paradigm by achieving robust
+and accurate detection under real-time constraints. The overall architecture is illustrated in
+Figure 1.
+Input
+Conv Conv C2f SCB SCB SCB SPPF
+Concat
+GCF
+Detect Head
+ConcatConcat UpEDFFNGCFUpEDFFN
+GCF
+Detect Head
+Conv Concat GCF Conv
+Detect Head
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Figure 1. Schematic of the MDF-YOLO network architecture. The overall network consists of
+three components: Backbone, Neck, and Head. The Backbone stage is embedded with the CrossGrid
+Memory Block to perform long-range dependency modeling in orthogonal directions and extract local
+convolutional features. The Neck stage introduces the multifractal prior-based context aggregation
+module, which achieves global–local feature fusion through macro- and micro-pathways guided by
+regularity. The up-sampling paths incorporate the Frequency-Guided Residual Block, which utilizes a
+frequency compensation mechanism to recover high-frequency details and fuses them with the main
+path in a residual form. Finally, multi-scale detection heads perform classification and bounding box
+prediction. This design achieves complementary feature synergy across the spatial, state-space, and
+frequency domains, effectively enhancing detection performance in indoor scenes.
+At the Backbone stage, the network is embedded with the CrossGrid Memory Block
+(CGMB). This module unfolds the input feature map into one-dimensional sequences along
+orthogonal directions and employs the Mamba state-space model to achieve long-range
+dependency modeling, while concurrently retaining a local convolutional path to extract
+fine-grained textures. The Orthogonal Grid Memory Modeling (OGMM) mechanism
+can capture complementary pixel relationships in both horizontal and vertical directions
+and explicitly incorporates spatial information through a position enhancement layer,
+thereby maintaining semantic consistency and strong spatial awareness at both local and
+global levels.
+In the Neck stage, we introduce the Hölder-Based Regularity Guidance–Hierarchical
+Context Aggregation (HG-HCA) Block. Unlike traditional, purely data-driven fusion meth-
+ods, the HG-HCA Block is dynamically modulated on a per-pixel basis by a multifractal
+prior in both its macro-context aggregation path and its micro-context refinement path. Its
+core lies in the Hölder prior head (HP-head), which performs a lightweight, differentiable
+approximation of the Hölder exponent on the input features to generate a local regularity
+map. This map characterizes the smoothness and roughness of different regions and is
+
+Fractal Fract. 2025, 9, 673 9 of 31
+transformed into a task-relevant guidance signal via a learnable calibration layer. The
+macro-path leverages this guidance to strengthen long-range dependency modeling in
+regular regions, maintaining the consistency of the overall scene layout. Conversely, the
+micro-path, through directionally sensitive convolution and a dual-attention mechanism,
+enhances the expression of details in texturally complex regions under the modulation of
+the fractal prior. Finally, the outputs of both paths undergo deep feature reorganization
+and residual fusion via a C2f module, achieving a dynamic balance between global and
+local features.
+In the up-sampling and high-resolution feature generation stage, the network em-
+ploys the Frequency-Guided Residual Block (FGRB). This module comprises a spatial
+up-sampling path and a frequency-domain compensation path. The main path preserves
+the global structure through bilinear interpolation and convolution. The frequency path
+maps features to the frequency domain, enhances high-frequency components using a
+learnable frequency weight matrix, and restores details via transposed convolution, before
+being finally fused with the main path in a residual manner. This design effectively compen-
+sates for the high-frequency information loss caused by interpolation during up-sampling,
+providing a richer feature representation for small objects and texturally complex regions.
+Through synergistic optimization across the state-space domain (CGMB), the Hölder-
+based prior-guided spatial domain (HG-HCA), and the frequency domain (FGRB), MDF-
+YOLO establishes a complementary mechanism for feature modeling and fusion. This
+enables the network to simultaneously maintain strong robustness and high detection
+accuracy in complex indoor environments.
+3.2. CrossGrid Memory Block
+In indoor object detection, targets are often subject to severe occlusion and complex
+stacking, where local textures and geometric boundaries are easily damaged or weakened
+during feature extraction. This requires detectors to simultaneously capture both local
+details and long-range dependencies. Traditional convolutional neural networks rely on
+limited receptive fields and thus face inherent limitations in modeling global spatial re-
+lationships, often leading to missed or false detections under occlusion and incomplete
+observations. Existing State Space Models (SSMs) in vision tasks typically flatten the
+input and map a two-dimensional image into a one-dimensional sequence for process-
+ing. However, this operation destroys the original spatial topology, making it easy to
+lose spatial consistency in complex indoor layouts, thereby limiting their applicability in
+detection tasks.
+Based on these considerations, we have designed the CrossGrid Memory Block
+(CGMB), which aims to preserve both the spatial inductive bias of local convolutions
+and the long-range dependency awareness of state-space modeling, without sacrificing
+computational efficiency. The core principle of this module is to explicitly maintain the 2D
+topological structure through an Orthogonal Grid Memory Modeling (OGMM) mechanism,
+which explicitly maintains two-dimensional topology by unfolding the input features along
+horizontal and vertical complementary directions. Cosine positional encodings are intro-
+duced into these sequences to enhance positional information, thereby preserving pixel
+adjacency and directional consistency on a global scale. Concurrently, a local convolutional
+path supplements fine-grained features such as textures and edges. This allows the overall
+representation to encompass both local details and global semantics, providing a more
+robust feature foundation for subsequent feature fusion and detection. The operational
+schematic of the CrossGrid Memory Block is depicted in Figure 2.
+
+Fractal Fract. 2025, 9, 673 10 of 31
+PE
+...
+...
+PE
+LN
+SiLU
+SSM
+SiLU
+1D Conv
+Linear
+Linear Linear
+LN
+SiLU
+SSM
+SiLU
+1D Conv
+Linear
+Linear Linear
+...
+ ...
+Conv
+Concat
+Split
+  
+Conv
+×n
+Bottleneck
+Conv
+Conv
+Grid Memory Modeling
+PE
+or
+Element-wise Addition
+Positional Encoding
+Element-wise Multiplication
+Bottleneck
+Conv
+Conv
+Conv
+ 
+Figure 2. Operational schematic of the CrossGrid Memory Block. The CrossGrid Memory Block
+contains two parallel feature processing branches. The left branch is for Orthogonal Grid Memory
+Modeling, which captures pixel-level long-range dependencies through modeling in orthogonal
+directions. The right branch is a local feature extraction path, designed to supplement local texture
+details. The outputs from the two branches are fused and then combined with a residual connection
+
+Fractal Fract. 2025, 9, 673 11 of 31
+and a convolutional module to produce the final output feature. CGMB achieves complementary
+feature extraction by combining “long-range dependency modeling along orthogonal directions”
+with “local convolutional detail supplementation,” and their integration under a residual mechanism
+ensures effective fusion. This design not only preserves strong spatial awareness and structural
+consistency but also ensures stable gradient propagation during end-to-end training.
+The entire module receives an input feature map Fin ∈ RC×H×W, where C, H and W
+denote the number of channels, height, and width of the feature map, respectively. The
+input is first dispatched into two complementary sub-paths:
+In the local modeling path (Local Path), the input feature is processed by a lightweight
+C2f module to extract fine-grained details such as edges and textures:
+Flocal = C2 f (Fin) (1)
+In the global modeling path (OGMM Path), we construct a spatial topology-enhanced
+branch based on state space modeling [ 23]. The input feature map is projected along
+horizontal and vertical directions into two one-dimensional sequences, Sh and Sv, both
+of which preserve pixel adjacency in the two-dimensional grid. To avoid the loss of
+spatial information during unfolding, cosine positional encodings [ 66], denoted as PEh
+and PEv, are added to each sequence to explicitly embed spatial position information.
+These sequences are then processed by independent Mamba Blocks to perform selec-
+tive state space modeling and capture long-range contextual dependencies in their re-
+spective directions. Finally, the outputs are remapped back to 2D space and fused via
+element-wise summation:
+Fglobal = Un f latten [Mamba h(Sh + PEh)] + Un f latten [Mamba v(Sv + PEv)] (2)
+Compared with the traditional “flatten-and-remodel” approach, this orthogonal
+fusion strategy preserves linear complexity while avoiding the destruction of two-
+dimensional topology.
+After the two aforementioned paths complete their respective modeling, the feature
+fusion stage integrates the local features Flocal and global features Fglobal through element-
+wise operations. These are then passed through a residual connection along with the
+original input Fin to further ensure gradient propagation and information integrity. The
+fused result is subsequently fed into a standard convolutional module for channel control
+and non-linear transformation. The final output feature representation of the entire module
+is given by
+Fout = Conv
+
+Fin + Flocal + Fglobal
+
+(3)
+Compared with traditional SSMs that flatten and remodel sequences, CGMB maintains
+two-dimensional topology. Compared with single-path convolutional or state space model-
+ing, its dual-path complementarity and residual fusion enhance feature completeness and
+robustness. Consequently, CGMB demonstrates higher interpretability and adaptability
+in indoor scenes with severe occlusion and complex stacking, while maintaining strong
+plug-and-play flexibility and generalizability.
+3.3. Hölder-Based Regularity Guidance–Hierarchical Context Aggregation Block
+Indoor object detection often encounters challenges such as large-scale variations,
+densely distributed targets, frequent occlusions, and irregular texture and boundary dis-
+tributions. This requires the detector, at the feature fusion stage, to not only maintain
+the consistency of global structural information but also emphasize fine-grained features
+critical for recognizing small objects. Conventional feature pyramid structures can pro-
+
+Fractal Fract. 2025, 9, 673 12 of 31
+vide cross-scale alignment, but they lack a dynamic balancing mechanism between global
+and local contexts. To address this, we propose the Hölder-Based Regularity Guidance–
+Hierarchical Context Aggregation Block (HG-HCA), which introduces a local regularity
+map to adaptively modulate the contributions of macro- and micro-context pathways,
+thereby achieving a self-adjusting balance between global structural modeling and local
+discriminative enhancement. The overall architecture is illustrated in Figure 3.
+The core of HG-HCA is the Hölder regularity prior. Given an input feature map
+Fin ∈ RC×H×W, a lightweight Hölder prior head (HP-head) generates a pixel-wise local
+regularity map
+∼
+α(x), which characterizes the smoothness and roughness of local regions.
+Specifically, three sets of depthwise separable convolutions with different receptive fields
+are used to simulate multi-scale responses. These responses undergo local energy aggre-
+gation and logarithmic transformation to approximate wavelet energy spectra, thereby
+yielding regularity measurements. A 1 × 1 convolution is then applied to linearly combine
+the multi-scale responses and fit the relationship between scale and energy, producing
+a regularity map correlated with the Hölder exponent. For stability, the map is further
+processed with smoothing convolution and instance normalization, followed by a learnable
+calibration layer to generate a task-related guidance signal:
+α∗(x) = σ
+
+γ
+∼
+α(x) − τ
+
+(4)
+where γ and τ are learnable parameters, and σ(·) denotes the sigmoid activation function.
+This design allows the network to dynamically learn how the smoothness or roughness of
+local regions should influence the balance between global and local features in accordance
+with the task objectives.
+To enable dynamic adjustment, the calibrated regularity map α∗(x) is further mapped
+into mutually exclusive weights for the macro and micro pathways. We employ a softmax
+function to generate the two weights as follows:
+wmacro (x) = exp(γm(α∗(x) − τm))
+exp(γm(α∗(x) − τm)) + exp
+ 
+γµ
+ 
+1 − α∗(x) − τµ
+ (5)
+wmicro (x) = exp
+ 
+γµ
+ 
+1 − α∗(x) − τµ
+
+exp(γm(α∗(x) − τm)) + exp
+ 
+γµ
+ 
+1 − α∗(x) − τµ
+ (6)
+where (γm, τm) and
+ 
+γµ, τµ
+
+are two independent sets of learnable parameters. By def-
+inition, wmacro(x) + wmicro(x) = 1, ensuring mutual exclusivity of the two weights at
+the pixel level. As a result, pixels in highly regular and smooth regions strengthen the
+macro-pathway contribution, while those in irregular and texture-rich regions rely more on
+the micro-pathway, thus achieving a dynamic balance across different spatial areas.
+In the macro-context pathway, the main objective is to efficiently model long-range
+dependencies across pixels. To this end, we introduce a reversible reordering operator R(k),
+which groups and rearranges features along the height or width dimension so that distant
+elements are mapped to adjacent positions, allowing standard convolutions to capture
+long-range interactions directly. Specifically, given an inputx ∈ RC×H×W, the operator R(k)
+w
+rearranges the width dimension to obtain x ∈ R
+C
+k ×H×kW. A 3 × 3 convolution is applied,
+followed by R(k)−1
+w to restore the original spatial shape x ∈ RC×H×W:
+ˆF(k)
+w = R(k)−1
+w
+
+Conv3×3
+
+R(k)
+w (Fin)
+
+(7)
+
+Fractal Fract. 2025, 9, 673 13 of 31
+3×3 Conv 3×3 Conv
+3×3 Conv 3×3 Conv
+Channel-Wise 
+Concat
+1×1 Conv
+c
+w
+h
+c
+w
+h
+2w
+h
+4w
+h
+c
+w
+h
+c
+w
+h
+w
+2h 4h
+w
+c
+w
+h
+Global Average 
+Pooling
+1×1 Conv
+Sigmoid
+Channel-Wise 
+Concat
+7×7 Conv
+Sigmoid
+Channel-Wise 
+Average Pooling
+Channel-Wise 
+Max Pooling
+C2f
+1×1 Conv
+1×1 Conv
+ReLU
+HG-Head
+    
+Soft Pooling
+Logit affine 
+modulation
+Logit affine 
+modulation
+3×7 Conv 7×3 Conv
+    HG-Head
+Channel-Wise 
+Concat
+Local Pooling
+Local Pooling
+Local Pooling
+Log Transformation
+Log Transformation
+Log Transformation
+3×3 DWConv
+5×5 DWConv
+7×7 DWConv
+1×1 Conv
+Smoothing Conv
+InstanceNormLearnable Calibration Layer
+Element-wise 
+Addition
+Element-wise 
+Multiplication
+2c
+w
+h
+ 
+Figure 3. The overall architecture of the HG-HCA Block. The macro pathway employs orthogonal
+reordering and convolution to model long-range dependencies, while the micro pathway integrates
+direction-sensitive convolutions and attention mechanisms to enhance details. Both pathways are
+dynamically regulated by the Hölder-based regularity prior and are fused within the C2f module,
+producing feature representations that simultaneously capture both global and local information.
+
+Fractal Fract. 2025, 9, 673 14 of 31
+The resulting feature map ˆF(k)
+w maintains the same dimensions as the input. A similar
+procedure is applied in the height dimension using R(k)
+h and R(k)−1
+h , yielding
+ˆF(k)
+wh = R(k)−1
+h
+
+Conv3×3
+
+R(k)
+h
+
+ˆF(k)
+w
+
+(8)
+In this way, distant pixels along the vertical direction are also mapped to local neigh-
+borhoods, enabling efficient long-range dependency modeling while preserving resolution.
+In this work, we set k = 2, 4 to capture both mid-range and long-range relationships in
+horizontal and vertical directions. Compared with directly applying large convolution
+kernels, this reordering–convolution–inverse reordering mechanism achieves more efficient
+long-range modeling without altering the resolution. Combined with the macro-pathway
+weights, the final macro-pathway output is
+Fmacro = Fin + wmacro ⊗ Conv1×1
+h
+ˆF(2)
+wh ; ˆF(4)
+wh
+i
+(9)
+where [·; ·] denotes channel concatenation and ⊗ denotes element-wise multiplication. This
+mechanism enhances macro-context contributions in regular regions to preserve global
+consistency, while suppressing them in texture-rich regions to avoid unnecessary mixing of
+distant features.
+Complementary to the macro-path, the Micro-Context Refinement Path aims to en-
+hance high-frequency details and local salient patterns within the image, enabling the
+model to more accurately identify object edges, textures, and small targets. This path first
+models local structures using directionally sensitive asymmetric convolutions on the input
+feature, formulated as
+Flocal = Conv3×7(Fmacro ) + Conv7×3(Fmacro ) (10)
+The combination of convolutional kernels with different orientations allows the net-
+work to simultaneously capture horizontal and vertical texture patterns, providing a more
+discriminative base representation for the subsequent attention mechanisms.
+The combination of horizontal and vertical filters captures texture patterns in both
+directions, providing a more discriminative basis for subsequent attention mechanisms. In
+the channel attention stage, a weighted pooling strategy is employed using wmicro to form
+channel descriptors:
+zc = ∑i,j wmicro (i, j) · Flocal (c, i, j)
+∑i,j wmicro (i, j) + ϵ (11)
+where c is the channel index, (i, j) represents the spatial location, and ϵ is a stability term.
+Weighted pooling ensures that texturally complex regions have a higher contribution to the
+channel statistics, thereby elevating the importance of relevant channels in the subsequent
+attention allocation. The channel descriptor vector then undergoes feature compression
+and restoration via dimensionality-reducing and dimensionality-increasing convolutions:
+lc = W2δ(W1zc) (12)
+where W1 ∈ R
+C
+r ×C and W2 ∈ RC× C
+r with scaling ratio r, and δ(·) is the ReLU
+activation function.
+Building on this, we introduce the concept of logit-space affine modulation, applying
+the micro-weights directly to the pre-activation stage of the attention to achieve more stable
+gradient propagation. The modulated channel attention logits are represented as
+l′
+c = lc + βc · wmicro (13)
+
+Fractal Fract. 2025, 9, 673 15 of 31
+where βc is a learnable scalar and wmicro is the global average of the micro-weights. Finally,
+the channel attention weights are
+Wc = σ
+ 
+l′
+c
+
+(14)
+Subsequently, the channel attention weights are multiplied channel-wise with the
+features to obtain the channel-enhanced features:
+Fc = Flocal ⊗ Wc (15)
+This design allows high-frequency features in less regular regions to be more promi-
+nently selected in the channel dimension, while more regular regions maintain a relatively
+stable response.
+In the spatial attention stage, the goal is to identify which locations on the image
+plane require further emphasis. To this end, we first perform channel-wise average pooling
+and max pooling on the channel-enhanced feature map Fc to obtain two single-channel
+saliency maps. These are concatenated with the micro-weights wmicro and passed through a
+7 × 7 convolution to generate the pre-activation features for spatial attention:
+ls = Conv7×7([AvgPoolC(Fc); MaxPoolC(Fc); wmicro ]) (16)
+Affine modulation is then used to further strengthen the representation of rough
+regions in the attention map:
+l′
+s = ls + βs · wmicro (17)
+where βs is a learnable modulation coefficient. After obtaining the spatial attention weights,
+they are applied to the channel-enhanced features to produce the output of the micro-path:
+Fmicro = Fc ⊗ σ
+ 
+l′
+s
+
+(18)
+where σ(·) denotes the sigmoid activation function, finally, the micro-pathway output
+Fmicro is passed through a C2f module for deeper feature recombination, then combined
+with the original input via residual connection and adjusted by a 1 × 1 convolution:
+Fout = Conv1×1(Fin + C2 f (Fmicro )) (19)
+Through this design, the HG-HCA module leverages Hölder-based regularity maps as
+pixel-wise priors to dynamically balance global and local contributions. The macro pathway
+ensures efficient modeling of structural consistency, while the micro pathway emphasizes
+fine-grained discriminative details. Their integration via residual and weight modulation
+enhances robustness in indoor scenes with large-scale variations, dense occlusions, and
+complex textures, while also ensuring good interpretability and extensibility.
+3.4. Frequency-Guided Residual Block
+In the task of indoor object detection, models must often strike a balance between
+deep semantic features and shallow spatial details. High-frequency information, such as
+edges and textures, is particularly crucial for maintaining discriminability, especially in the
+recognition of small objects and the differentiation of occluded ones. However, existing
+detection frameworks commonly rely on up-sampling in the Neck stage to restore spatial
+resolution. While computationally efficient, prevalent methods like nearest-neighbor or
+bilinear interpolation inevitably introduce a smoothing effect when enlarging feature maps,
+thereby attenuating the expression of high-frequency details. This phenomenon often
+results in the blurring of small objects and intricate details after up-sampling, further
+exacerbating the already prominent issue of detail loss in indoor scenes.
+
+Fractal Fract. 2025, 9, 673 16 of 31
+To mitigate this limitation, this paper proposes the Frequency-Guided Residual Block
+(FGRB). The design objective of this module is to selectively recover and enhance high-
+frequency details while maintaining the stability of the global structure, thereby improving
+the representation of small objects and local textures. The core concept of FGRB is to
+model the conventional spatial up-sampling path in parallel with a frequency-domain
+compensation path: the main path is responsible for providing smooth and stable low-
+frequency structural information, while the auxiliary path recovers edge and texture details
+through frequency analysis and compensation. The two are ultimately fused in the residual
+domain. This design transforms the up-sampling process from mere spatial expansion into
+a synergistic optimization that considers both global structure and local detail, providing
+more robust feature support for small objects and complex scenes in indoor detection. Its
+structure is illustrated in Figure 4.
+Input
+W
+Transposed Conv
+Output
+1×1 Conv
+Upsample 2D-FFT
+1×1 Conv 2D IFFT
+Element-wise Addition
+Element-wise Production
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Figure 4. Schematic of the Frequency-Guided Residual Block. The module comprises two branches: a
+spatial up-sampling path and a frequency-domain compensation path. The former preserves struc-
+tural information through interpolation and convolution, while the latter recovers high-frequency
+details through frequency weight enhancement and transposed convolution. The outputs of the two
+are fused in the residual domain and then refined by a1 × 1 convolution, generating a high-resolution
+feature map that incorporates both global structure and detailed textures.
+
+Fractal Fract. 2025, 9, 673 17 of 31
+The FGRB module takes a low-resolution feature map Fin ∈ RC×H×W from the deeper
+layers of the Neck as input. Internally, the module consists of two parallel branches: a spatial
+up-sampling path and a frequency-domain compensation path, responsible for preserving
+global structure and recovering local details, respectively. The spatial up-sampling path first
+performs bilinear interpolation on the input feature, doubling its spatial resolution to obtain
+U×2(Fin) ∈ RC×2H×2W. To perform linear recombination in the channel dimension and
+suppress redundant information, this path then introduces a 1 × 1 convolutional operation,
+transforming the interpolated feature into Fmain ∈ RC′×2H×2W. This process enhances the
+representation of principal low-frequency components while preserving global structural
+information. The frequency-domain compensation path focuses on detail recovery. First,
+a 2D Fast Fourier Transform (FFT) is independently applied to each channel of the input
+feature Fin:
+S = 2D-FFT(Fin) ∈ CC×H×W (20)
+This transforms the features from the spatial domain to a frequency-domain represen-
+tation, where coefficients in the central region correspond to low-frequency components
+and those in the surrounding regions correspond to high-frequency components. To selec-
+tively enhance detail information in the frequency domain, a learnable frequency weight
+matrix Wf req ∈ CC×H×W is introduced. This matrix gradually learns to selectively preserve
+or suppress frequency components at different locations during training. The enhanced
+frequency-domain features are obtained through an element-wise Hadamard product:
+Senh = S ⊙ Wf req (21)
+This process allows the network to flexibly adjust the weights of details such as edges
+and textures in the frequency domain, achieving adaptive high-frequency compensation.
+Subsequently, the enhanced frequency-domain features are transformed back to the spatial
+domain via a 2D inverse FFT:
+Fcomp = 2D-FFT−1(Senh ) (22)
+This yields a low-resolution detail-compensated feature map. To match the spatial
+resolution of the main path, a transposed convolution TConv k,2 with a stride of 2 is used
+to up-sample Fcomp , generating Fcomp ↑ ∈ RC×2H×2W. The transposed convolution not only
+serves to spatially enlarge the feature map but also meticulously “paints” the recovered
+textures and edges during the up-sampling process through its learnable kernel, enabling a
+more precise alignment of the compensated features with the spatial grid.
+The outputs of the two paths are fused in the residual domain:
+Ff use = Fmain + Fcomp ↑ (23)
+This fusion method effectively introduces the recovered detail signals from the com-
+pensation path while preserving the original structural information. The residual form
+also contributes to the stability of the optimization process. Following the fusion, a
+1 × 1 convolutional layer is further introduced, accompanied by batch normalization
+and a SiLU activation function:
+Fout = SiLU
+
+BN
+
+Conv1×1
+
+Ff use
+
+(24)
+This is used to perform a weighted combination and recalibration of the fused features
+along the channel dimension, thereby suppressing redundant features and enhancing key
+ones. This step not only improves the discriminative capability of the fused result but
+
+Fractal Fract. 2025, 9, 673 18 of 31
+also allows for flexible control over the number of output channels, ensuring seamless
+integration with subsequent detection head structures.
+The final high-resolution feature map output Fout, possesses both a stable global
+structural representation and rich detail textures, providing a significant performance boost
+in tasks sensitive to small objects and details. This design, which operates through the
+synergy of frequency-domain compensation and spatial up-sampling, enables the module
+to more comprehensively preserve multi-scale information, thereby providing high-quality
+feature support for subsequent detection.
+4. Experiments
+4.1. Experimental Setup
+To validate the effectiveness and applicability of the proposed method, this study
+established a multi-dimensional experimental verification platform. The hardware configu-
+ration comprised a high-performance computing platform equipped with an NVIDIA RTX
+4090 GPU, an AMD R9 9900X CPU, and 64GB of DDR5 6000 MHz memory, capable of sup-
+porting large-scale parallel data processing and model training requirements. The software
+environment was based on the PyTorch 2.2.1 deep learning framework, in conjunction with
+CUDA 12.7, to enable high-efficiency acceleration of GPU operators and ensure hardware
+driver compatibility and operational stability. To ensure the stability and convergence
+efficiency of the training process, this study employed the SGD optimizer and incorporated
+a warm-up mechanism to mitigate gradient oscillations during the initial stages of training.
+This study utilized the Furniture Detection v20 [67] dataset as the core data foundation
+for the experiments. During the preprocessing stage, the original data underwent automatic
+rotation correction and size normalization. Data augmentation techniques, including
+rotation and cropping, were also applied to enhance the diversity and robustness of the
+samples. However, the original dataset exhibited certain deficiencies in class distribution
+and annotation format; some classes were sparsely populated, and some mask annotations
+were unsuitable for the detection task. To address these issues, this study systematically
+reprocessed the dataset. This included merging semantic categories, converting masks to
+bounding boxes, and unifying label formats, thereby constructing a high-quality version
+more suitable for the object detection task. Sample images from the dataset are shown in
+Figure 5.
+The dataset contains a total of 6956 images, which were partitioned into training,
+validation, and test sets according to a 7:2:1 ratio. All images were resized to 416 × 416,
+maintaining a consistent aspect ratio. The bounding box areas exhibit a wide span, covering
+both large furniture that occupies a significant portion of the visual field and smaller objects
+or partial structures. In terms of composition, the dataset comprises 11 categories, encom-
+passing typical indoor objects such as bedding, storage furniture, lighting fixtures, and
+decorative components. The class distribution displays a significant imbalance: the largest
+class, ‘Sofa’, accounts for 26.97% of instances, whereas the smallest class, ‘Nightstand’,
+constitutes only 2.89%, representing a nearly 9.3-fold difference in the number of instances.
+This long-tail distribution is consistent with the patterns observed in real-world indoor
+environments but also places higher demands on the model’s ability to learn from few-shot
+categories. The specific class distribution details are provided in Table 1.
+
+Fractal Fract. 2025, 9, 673 19 of 31
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Figure 5. Sample images from the dataset.
+Table 1. Class distribution of the dataset.
+Class ID Class Name Instances Proportion (%) Image Count
+0 Bed 1107 13.51 1088
+1 Cabinet 916 11.18 826
+2 Closet 440 5.37 413
+3 Chair 618 7.54 554
+4 Lamp 267 3.26 216
+5 Nightstand 237 2.89 225
+6 Shelf 247 3.01 244
+7 Sofa 2210 26.97 2163
+8 Table 1134 13.84 1110
+9 Wall Panel 391 4.77 364
+10 Window 626 7.64 409
+
+Fractal Fract. 2025, 9, 673 20 of 31
+In the model performance evaluation phase, we adopt core metrics covering the two
+dimensions of detection accuracy and detection efficiency to comprehensively measure the
+performance of different methods on the indoor object detection task. In terms of accuracy,
+we use Mean Average Precision (mAP) as the primary evaluation metric. mAP is calculated
+based on Intersection over Union (IoU), which measures the degree of overlap between the
+model’s predicted bounding box and the ground-truth bounding box, defined as the ratio
+of the intersection to the union of the two boxes. For a single class c, given an IoU threshold
+τ, its Average Precision APc(τ) can be obtained by integrating the Precision-Recall (P-R)
+curve. The relationship is expressed as Pc(R|τ), leading to the formula:
+APc(τ) =
+Z 1
+0
+Pc(R|τ)dR (25)
+Here, P = TP
+TP+FP and R = TP
+TP+FN, where TP, FP, and FN represent the number of true
+positive, false positive, and false negative predictions, respectively. The final mAP metric is
+obtained by calculating the mean of the AP values across all classes:
+mAP (τ) = 1
+Nclasses
+Nclasses
+∑
+c=1
+APc(τ) (26)
+Common evaluation metrics under different thresholds include:
+mAP@0.5: The mean Average Precision at an IoU threshold of 0.5, representing performance
+under a looser matching condition between predicted and ground-truth boxes.
+mAP@0.75: The mean Average Precision at an IoU threshold of 0.75, which more strictly
+reflects the localization accuracy of the bounding boxes.
+mAP@0.5:0.95: The result averaged over IoU thresholds from 0.5 to 0.95 with a step size of
+0.05, constituting a comprehensive measurement of detection performance.
+In terms of detection efficiency, we use two metrics to describe efficiency: Frames Per
+Second (FPS) and per-image latency (ms/img). The per-image latency can be broken down
+into three components: preprocessing ( pre), inference (infer), and post-processing ( post),
+with the total being
+Latency = Tpre + Tin f er + Tpost (27)
+In the actual operation of the model, Tpre denotes the time for preprocessing steps like
+image reading and normalization, Tin f er is the time consumed by the deep neural network’s
+forward pass, and Tpost includes steps such as Non-Maximum Suppression (NMS) and
+results decoding. FPS is calculated as the ratio of the total number of images in the test set,
+N, to the total inference time, Ttotal . FPS is also the reciprocal of latency and represents the
+number of images the model can process per unit of time:
+FPS = N
+Ttotal
+= 1
+Latency (28)
+By combining these two dimensions of accuracy and efficiency, this paper can compre-
+hensively evaluate the model’s ability to detect small objects, handle complex occlusions,
+and maintain real-time performance, providing a solid foundation for subsequent compar-
+ative experiments and the validation of proposed improvements.
+4.2. Experimental Results and Comparison
+To comprehensively validate the effectiveness of the proposed method, this paper
+conducted a comparative analysis against several current mainstream object detectors on
+the Furniture Detection v20 dataset. The experimental results are presented in Table 2 and
+
+Fractal Fract. 2025, 9, 673 21 of 31
+Figure 6. In the table, the best-performing results are marked in bold, and the second-best
+results are underlined. As can be observed from the table, MDF-YOLO achieved the highest
+performance across all accuracy-related evaluation metrics. The overall results indicate
+that the proposed multi-domain fusion mechanism can significantly enhance the accuracy
+and robustness of detection in complex indoor scenes.
+Table 2. Performance comparison of different detection models on the dataset.
+Model mAP@50 mAP@50-95 mAP@75 FPS Latency
+(ms)Val Test Val Test Val Test
+YOLOv8 0.6904 0.6674 0.5641 0.5551 0.6145 0.6072 378.1 2.64
+YOLOv9 0.6962 0.6658 0.5684 0.5562 0.6101 0.6114 429.25 2.33
+YOLOv10 0.6762 0.6655 0.5624 0.5614 0.6065 0.6122 462.82 2.16
+YOLOv11 0.6958 0.6718 0.5758 0.5631 0.6176 0.6025 484.06 2.07
+YOLOv12 0.6715 0.6627 0.5535 0.5569 0.6016 0.5952 357.14 2.80
+RT-DETR 0.6588 0.6241 0.5264 0.5006 0.5683 0.5369 390.17 2.56
+MDF-YOLO 0.7158 0.6803 0.5814 0.5615 0.6117 0.6266 354.6 2.82
+Specifically, on the mAP@0.5 metric, MDF-YOLO achieved scores of 0.7158 on the
+validation set and 0.6803 on the test set, which are the highest values among all compared
+methods, demonstrating a significant improvement over other detectors. On the more
+stringent mAP@0.75 metric, MDF-YOLO also achieved scores of 0.5814 and 0.5615, sur-
+passing the other methods. This result highlights the advantages of our designed model in
+multi-scale context fusion, enabling the detector to better capture semantic correlations in
+structurally complex indoor scenes and thereby enhancing its discriminative capability for
+furniture objects with ambiguous boundaries and large-scale variations. Furthermore, on
+the comprehensive mAP@0.5:0.95 metric, MDF-YOLO’s performance reached 0.6117 and
+0.6266, which was the most outstanding, maintaining stable accuracy across different IoU
+thresholds. Through hierarchical attention allocation, the model can effectively model long-
+range dependencies, preventing the loss of semantic information when detecting objects in
+large scenes. This allows MDF-YOLO to maintain stable recognition of large objects while
+improving its detection capability for small objects and fine-grained decorative items.
+In terms of inference efficiency, YOLOv10 and YOLOv11 demonstrated higher frame
+rates and lower latency. In contrast, MDF-YOLO achieved a frame rate of 354.6 FPS with a
+latency of 2.82 ms, slightly slower than these two methods. However, when considering
+both accuracy and efficiency, MDF-YOLO still delivers the optimal detection accuracy while
+operating at a high inference speed. This balance between accuracy and speed indicates
+that our proposed model avoids introducing redundant computations while enhancing
+features for small objects, allowing it to maintain high detection performance within a
+limited computational budget.
+To further validate the model’s effectiveness intuitively, Figure 6 displays the detection
+results of different methods in typical indoor scenes. The results show that MDF-YOLO
+exhibits superior robustness in multi-class object recognition. For the detection of large
+objects such as sofas, beds, and closets, MDF-YOLO generates bounding boxes that more
+accurately conform to the actual object boundaries. For small objects like nightstands and
+wall lamps, the detection results of MDF-YOLO are nearly identical to the ground-truth
+annotations, whereas other methods commonly suffer from missed detections or bounding
+box offsets. Moreover, MDF-YOLO maintains stable detection performance even in scenes
+with significant occlusion, which further validates the effectiveness of the multi-domain
+fusion strategy in complex environments.
+When benchmarked on the Furniture Detection v20 dataset, MDF-YOLO surpasses
+existing methods in accuracy while maintaining a practical inference speed. Through
+
+Fractal Fract. 2025, 9, 673 22 of 31
+the synergistic action of the CGMB, HCA, and FGRB modules, the model achieves com-
+prehensive improvements in feature representation, context modeling, and small object
+enhancement, thereby demonstrating optimal overall performance on the indoor furniture
+detection task.
+GroundTruth
+YOLOv11
+YOLOv8
+YOLOv12
+YOLOv9
+RT-DETR
+YOLOv10
+MDF-YOLO
+ 
+ 
+Figure 6. Visual comparison of detection results from different models in typical indoor scenes.
+
+Fractal Fract. 2025, 9, 673 23 of 31
+4.3. Ablation Study
+To systematically analyze the individual efficacy of each core component within the
+MDF-YOLO architecture and to verify their synergistic effects, we conducted a series
+of comprehensive ablation studies using YOLOv8 as the baseline model. These experi-
+ments were performed under identical training strategies and data configurations. We
+progressively integrated the cross-layer global modeling module (CGMB), the Hölder-
+Based Regularity Guidance–Hierarchical Context Aggregation Block (HG-HCA Block), and
+the frequency-guided reconstruction module (FGRB) into the baseline architecture, either
+individually or in combination. The quantitative results are summarized in Table 3, where
+the best results are marked in bold and the second-best are underlined. To provide clarity
+on the values in parentheses in Table 3, the numbers represent the performance difference
+between the current configuration and the baseline model.
+Table 3. Impact of different module combinations on model detection performance.
+CGM Block HG-HCA Block FGR Block mAP@50 FPS Latency (ms)Val Test
+0.6904 0.6674 378.1 2.64
+✓ 0.7021 (+0.117) 0.6728 (+0.054) 369.0 ( −9.1) 2.71 (+0.07)
+✓ 0.6996 (+0.092) 0.6715 (+0.041) 367.6 ( −10.5) 2.72 (+0.08)
+✓ 0.6957 (+0.053) 0.6698 (+0.024) 374.5 ( −3.6) 2.67 (+0.03)
+✓ ✓ 0.7134 (+0.230) 0.6784 (+0.110) 358.4 (−19.7) 2.79 (+0.15)
+✓ ✓ 0.7074 (+0.170) 0.6755 (+0.081) 365.0 ( −13.1) 2.74 (+0.10)
+✓ ✓ 0.7064 (+0.160) 0.6745 (+0.071) 363.6 ( −14.5) 2.75 (+0.11)
+✓ ✓ ✓ 0.7158 (+0.254) 0.6803 (+0.129) 354.6 (−23.5) 2.82 (+0.18)
+The experimental results reveal the contributions of each module. In the validation
+of single-module gains, individually introducing the CGM Block increased the mAP@0.5
+on the validation and test sets from 0.6904/0.6674 to 0.7021/0.6728. This improvement
+validates the effectiveness of its orthogonal grid memory modeling mechanism, which
+models long-range spatial dependencies via a state-space model, thereby compensating
+for the baseline network’s deficiency in global relation reasoning. Similarly, when the
+HG-HCA Block was integrated alone, the mAP@0.5 reached 0.6996/0.6715. This indicates
+that its hierarchical macro-micro context aggregation strategy, along with the path weight
+adjustment method based on the multifractal prior, can effectively align semantic informa-
+tion between high- and low-level features and enhance the model’s discriminative ability
+in complex backgrounds. The independent introduction of the FGR Block also yielded a
+stable performance increase to 0.6957/0.6698. Its parallel frequency-domain compensation
+path successfully mitigated the information decay of small object features during deep
+network propagation by explicitly recovering high-frequency components.
+In the module combination tests, the complementary effects between components
+became increasingly apparent. The combination of the CGM Block and HG-HCA Block
+elevated the mAP@0.5 to 0.7134/0.6784, making it the second-best combination after the
+final model. This demonstrates that the integration of global structural awareness and
+hierarchical semantic alignment produces a powerful synergy. Ultimately, when all three
+modules were integrated to form the complete MDF-YOLO architecture, the model’s
+performance reached its peak, with the mAP@0.5 metric soaring to 0.7158/0.6803. In
+terms of efficiency, although the introduction of the new modules reduced the FPS from
+a high of 378.1 to 354.6 and slightly increased the latency to 2.82 ms, the performance
+remains well within the scope of real-time applications. Overall, MDF-YOLO achieves a
+
+Fractal Fract. 2025, 9, 673 24 of 31
+significant improvement in accuracy at a minor cost to efficiency, validating the novelty
+and practicality of our multi-domain fusion strategy.
+To intuitively reveal the operational mechanisms of each module at the feature level,
+we conducted a further visual analysis of the model’s attention distribution via heatmaps
+before and after module integration. The heatmap comparison in Figure 7 clearly illustrates
+the role of the CGM Block in enhancing global structural perception. Before its introduction,
+the baseline model’s response to large-sized objects was relatively scattered, with activation
+areas appearing fragmented. After its introduction, thanks to the CGM Block’s capture
+of long-range spatial dependencies via its orthogonal grid memory modeling mechanism,
+previously discontinuous activation areas on the target were effectively integrated, forming
+a continuous and uniform high-response region that covers the object’s complete con-
+tour. This visually corroborates the ability of CGMB to improve global consistency and
+localization stability.
+GroundTruth Before After
+ 
+ 
+Figure 7. Comparison of attention heatmaps before and after the introduction of the CGM Block.
+Figure 8 showcases the role of the HG-HCA Block in context aggregation and detail
+preservation. The ablation results indicate that without this module, the model’s attention
+distribution is relatively diffuse and susceptible to interference from complex background
+textures, causing the edges of small objects and local details to be obscured. After incor-
+porating the HG-HCA Block, the attention distribution improves markedly. This change
+is attributable not only to the macro-path’s enhanced modeling of long-range dependen-
+cies in smooth regions, guided by the fractal prior, but also to the saliency bias gained
+by the micro-path in less regular regions, which allows it to more effectively highlight
+texture and edge features. As seen in the heatmaps, after modulation by the HG-HCA, the
+model’s attention response on the main body of the target becomes more concentrated,
+and continuous response bands are formed between different semantic functional areas.
+This suggests that the local regularity information provided by the fractal prior effectively
+guides the resource allocation between the macro- and micro-paths, enabling the network
+
+Fractal Fract. 2025, 9, 673 25 of 31
+to suppress background interference while preserving and enhancing task-relevant fine-
+grained features. Furthermore, irrelevant high-frequency responses in background areas
+are weakened, and the attention energy is concentrated within the target and its semantic
+neighborhood, thereby improving the detection’s discriminability and stability.
+GroundTruth Before After
+ 
+Figure 8. Comparison of attention heatmaps before and after the introduction of the HCA Block.
+Figure 9 intuitively confirms the critical function of the FGR Block in recovering detail
+information. The baseline model, having lost high-frequency information in the deeper
+layers of the network, generally exhibited weak responses to small objects and object edges.
+The core of the FGR Block is its parallel frequency-domain compensation path, which
+adaptively enhances high-frequency components via a learnable frequency weight matrix.
+After this module was introduced, the heatmaps show distinct, high-intensity activation
+bands in detail-dense areas such as window frames and chair legs, as well as along object
+edges. This phenomenon provides strong evidence that the FGRB successfully recovered
+the detailed features that had been smoothed out.
+Finally, Figure 10 presents a comparison between the baseline model and the complete
+MDF-YOLO architecture, with heatmaps that are a culmination of all the aforementioned
+advantages. The response distribution of MDF-YOLO exhibits an ideal state of “stable
+global structure” and “rich local details”: it forms complete and uniform coverage over large
+objects, while displaying clear, sharp activations on small objects and complex textures. This
+eloquently demonstrates that the global consistency from CGMB, the semantic alignment
+capability of HG-HCA, and the detail recovery ability of FGRB, through their synergistic
+effects, ultimately achieve a feature representation that most closely approximates the
+ground-truth annotations, corresponding to the optimal quantitative metrics in Table 3.
+
+Fractal Fract. 2025, 9, 673 26 of 31
+GroundTruth Before After
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Figure 9. Comparison of attention heatmaps before and after the introduction of the FGR Block.
+GroundTruth Before After
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Figure 10. Comparison of attention heatmaps between the baseline model and the synergistic effect
+of all modules.
+Finally, Figure 10 presents a comparison between the baseline model and the complete
+MDF-YOLO architecture, with heatmaps that are a culmination of all the aforementioned
+
+Fractal Fract. 2025, 9, 673 27 of 31
+advantages. The response distribution of MDF-YOLO exhibits an ideal state of “stable
+global structure” and “rich local details”: it forms complete and uniform coverage over large
+objects, while displaying clear, sharp activations on small objects and complex textures. This
+eloquently demonstrates that the global consistency from CGMB, the semantic alignment
+capability of HCA, and the detail recovery ability of FGRB, through their synergistic effects,
+ultimately achieve a feature representation that most closely approximates the ground-truth
+annotations, corresponding to the optimal quantitative metrics in Table 3.
+5. Discussion
+This study focuses on the significantly challenging task of object detection in indoor
+scenes. In such environments, objects commonly exhibit characteristics like large-scale
+variations, frequent occlusions, complex textures, and imbalanced layouts, making it dif-
+ficult for conventional detectors based on convolution or a single paradigm to maintain
+high detection accuracy while ensuring real-time performance. To address this, this paper
+proposes a multi-domain fusion detection framework, MDF-YOLO. It introduces the Cross-
+Grid Memory Block (CGMB), the Hölder-Based Regularity Guidance–Hierarchical Context
+Aggregation (HG-HCA) module, and the Frequency-Guided Residual Block (FGRB) into
+the network architecture to perform feature enhancement in the state-space domain, spatial
+domain, and frequency domain, respectively. This establishes a more effective dynamic
+balance between global structure modeling and the preservation of local discriminabil-
+ity. Through this design, we have not only verified the model’s significant accuracy
+improvement on multiple public datasets but also maintained a real-time performance
+level comparable to the original YOLO framework in terms of inference speed and latency.
+Experimental results show that MDF-YOLO achieves superior performance compared
+to existing mainstream detectors on mAP@0.5, mAP@0.75, and the comprehensive metric
+mAP@0.5:0.95. This performance validates the effectiveness of CGMB in modeling long-
+range dependencies while preserving 2D topological structure, the success of HG-HCA
+in adaptively fusing macro and micro contexts under the guidance of Hölder regularity
+priors, and the capability of FGRB to compensate for fine-grained structural details during
+high-frequency information recovery. It is noteworthy that the model’s results on FPS and
+Latency metrics indicate that its overall detection efficiency did not significantly decrease
+due to structural improvements. This suggests that the proposed method achieves stronger
+adaptability to complex indoor environments while maintaining a low computational cost.
+Nevertheless, this study has certain limitations. First, the HG-HCA module relies on
+an approximate calculation of the Hölder regularity prior, and its generalization capability
+across different data distributions requires further validation. Second, although the pro-
+posed method maintains a relatively lightweight structure, its measured performance on
+embedded platforms or low-power devices needs further exploration.
+Overall, the significance of this research lies in proposing a low-cost approach to en-
+hance the performance of object detection in indoor scenes. By combining three complemen-
+tary dimensions—state-space, spatial regularity, and frequency-domain compensation—it
+implements an effective framework for multi-domain fusion feature modeling. This ap-
+proach not only provides a new perspective for improving detection accuracy but also
+offers a potential solution for practical applications under resource-constrained condi-
+tions. Future work could be directed towards cross-domain transfer, weakly supervised or
+self-supervised learning to enhance the model’s applicability and scalability in real-world
+complex environments.
+
+Fractal Fract. 2025, 9, 673 28 of 31
+6. Conclusions
+This paper proposes the MDF-YOLO framework to address issues in indoor object
+detection, such as large-scale variations, frequent occlusions, and detail loss. In its de-
+sign, the CrossGrid Memory Block is introduced into the backbone network to model
+long-range dependencies while preserving the 2D topological structure. In the neck stage,
+the Hölder-Based Regularity Guidance–Hierarchical Context Aggregation module is de-
+signed to use a Hölder regularity map as a guide to adaptively balance macro-context
+and micro-discriminability. In the high-resolution restoration stage, the Frequency-Guided
+Residual Block is employed to compensate for high-frequency details lost during con-
+volutional up-sampling. The synergy of these three components enables the model
+to form a complementary mechanism between global structure preservation and local
+feature enhancement.
+Experimental results show that MDF-YOLO surpasses mainstream detectors on multi-
+ple accuracy metrics and achieves stronger robustness against small objects and complex
+occlusions while maintaining near real-time efficiency. This demonstrates that the proposed
+multi-domain fusion and Hölder regularity guidance mechanisms can effectively improve
+detection performance at a low cost. Despite these achievements, the study has limitations,
+such as HG-HCA’s reliance on Hölder regularity approximation and insufficient testing
+regarding cross-domain transfer and on embedded devices. Future work could further
+integrate depth information, multi-modal inputs, and lightweight optimization techniques
+to expand the model’s applicability under resource-constrained conditions.
+In summary, the introduction of MDF-YOLO not only demonstrates the potential of
+combining mathematical priors with deep learning from an academic perspective but also
+provides a scalable solution for service robots, intelligent security, and indoor perception
+systems in practical applications.
+Author Contributions: Conceptualization, F.L., J.Y. and H.Z.; Methodology, F.L. and J.Y.; Software,
+F.L. and J.Y.; Validation, F.L., J.Y. and H.Z.; Formal analysis, F.L. and H.Z.; Investigation, F.L. and H.Z.;
+Resources, J.Y.; Data curation, J.Y. and H.Z.; Writing—original draft, F.L.; Writing—review & editing,
+F.L., J.Y. and H.Z.; Visualization, J.Y. and H.Z.; Supervision, H.Z.; Project administration, H.Z. All
+authors have read and agreed to the published version of the manuscript.
+Funding: This research received no external funding.
+Data Availability Statement: Data derived from public domain resources.
+Conflicts of Interest: The authors declare no conflict of interest.
+References
+1. Duan, J.; Yu, S.; Tan, H.L.; Zhu, H.; Tan, C. A survey of embodied AI: From simulators to research tasks.IEEE T rans. Emerg. T op.
+Comput. Intell. 2022, 6, 230–244. [CrossRef]
+2. Ye, Y.; Ma, X.; Zhou, X.; Bao, G.; Wan, W.; Cai, S. Dynamic and real-time object detection based on deep learning for home service
+robots. Sensors 2023, 23, 9482. [CrossRef] [PubMed]
+3. Alqobali, R.; Alshmrani, M.; Alnasser, R.; Rashidi, A.; Alhmiedat, T.; Alia, O.M.D. A survey on robot semantic navigation systems
+for indoor environments. Appl. Sci. 2023, 14, 89. [CrossRef]
+4. Chen, W.; Chi, W.; Ji, S.; Ye, H.; Liu, J.; Jia, Y.; Yu, J.; Cheng, J. A survey of autonomous robots and multi-robot navigation:
+Perception, planning and collaboration. Biomim. Intell. Robot. 2025, 5, 100203. [CrossRef]
+5. Raychaudhuri, S.; Chang, A.X. Semantic mapping in indoor embodied AI—A comprehensive survey and future directions. arXiv
+2025, arXiv:2501.05750.
+6. Sünderhauf, N.; Dayoub, F.; McMahon, S.; Talbot, B.; Schulz, R.; Corke, P .; Wyeth, G.; Upcroft, B.; Milford, M. Place categorization
+and semantic mapping on a mobile robot. In Proceedings of the 2016 IEEE International Conference on Robotics and Automation
+(ICRA), Stockholm, Sweden, 16–21 May 2016; IEEE: Piscataway, NJ, USA, 2016; pp. 5729–5736.
+
+Fractal Fract. 2025, 9, 673 29 of 31
+7. Sepulveda, G.; Niebles, J.C.; Soto, A. A deep learning based behavioral approach to indoor autonomous navigation. In Proceedings
+of the 2018 IEEE International Conference on Robotics and Automation (ICRA), Brisbane, Australia, 21–25 May 2018; IEEE:
+Piscataway, NJ, USA, 2018; pp. 4646–4653.
+8. Hoseinnezhad, R. A comprehensive review of deep learning techniques in mobile robot path planning: Categorization and
+analysis. Appl. Sci. 2025, 15, 2179. [CrossRef]
+9. Mirjalili, R.; Krawez, M.; Walter, F.; Burgard, W. VLM-Vac: Enhancing smart vacuums through VLM knowledge distillation and
+language-guided experience replay. arXiv 2024, arXiv:2409.14096.
+10. Huang, B.; Chaki, D.; Bouguettaya, A.; Lam, K.Y. A survey on conflict detection in IoT-based smart homes. ACM Comput. Surv.
+2023, 56, 1–40. [CrossRef]
+11. Örnek, E.P .; Krishnan, A.K.; Gayaka, S.; Kuo, C.H.; Sen, A.; Navab, N.; Tombari, F. SupeRGB-D: Zero-shot instance segmentation
+in cluttered indoor environments. IEEE Robot. Autom. Lett. 2023, 8, 3709–3716. [CrossRef]
+12. Naseer, M.; Khan, S.; Porikli, F. Indoor scene understanding in 2.5/3D for autonomous agents: A survey. IEEE Access 2018, 7,
+1859–1887. [CrossRef]
+13. Singh, K.J.; Kapoor, D.S.; Thakur, K.; Sharma, A. Computer-vision based object detection and recognition for service robot in
+indoor environment. Comput. Mater. Contin. 2022, 72, 197–213. [CrossRef]
+14. Wu, X.; Sahoo, D.; Hoi, S.C. Recent advances in deep learning for object detection. Neurocomputing 2020, 396, 39–64. [CrossRef]
+15. Redmon, J.; Divvala, S.; Girshick, R.; Farhadi, A. You only look once: Unified, real-time object detection. In Proceedings
+of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), Las Vegas, NV , USA, 27–30 June 2016; IEEE:
+Piscataway, NJ, USA, 2016; pp. 779–788.
+16. Lin, T.Y.; Goyal, P .; Girshick, R.; He, K.; Dollár, P . Focal loss for dense object detection. In Proceedings of the IEEE International
+Conference on Computer Vision (ICCV), Venice, Italy, 22–29 October 2017; IEEE: Piscataway, NJ, USA, 2017; pp. 2980–2988.
+17. Tian, Z.; Shen, C.; Chen, H.; He, T. FCOS: Fully convolutional one-stage object detection. In Proceedings of the IEEE/CVF
+International Conference on Computer Vision (ICCV), Seoul, Republic of Korea, 27 October–2 November 2019; IEEE:
+Piscataway, NJ, USA, 2019; pp. 9627–9636.
+18. Mittal, P . A comprehensive survey of deep learning-based lightweight object detection models for edge devices.Artif. Intell. Rev.
+2024, 57, 242. [CrossRef]
+19. Afif, M.; Ayachi, R.; Said, Y.; Atri, M. An evaluation of EfficientDet for object detection used for indoor robots assistance navigation.
+J. Real-Time Image Process. 2022, 19, 651–661. [CrossRef]
+20. Azulay, A.; Weiss, Y. Why do deep convolutional networks generalize so poorly to small image transformations?J. Mach. Learn.
+Res. 2019, 20, 1–25.
+21. Carion, N.; Massa, F.; Synnaeve, G.; Usunier, N.; Kirillov, A.; Zagoruyko, S. End-to-end object detection with transformers.
+In Proceedings of the European Conference on Computer Vision (ECCV), Glasgow, UK, 23–28 August 2020; Springer: Cham,
+Switzerland, 2020; pp. 213–229.
+22. Zhu, X.; Su, W.; Lu, L.; Li, B.; Wang, X.; Dai, J. Deformable DETR: Deformable transformers for end-to-end object detection. arXiv
+2020, arXiv:2010.04159.
+23. Gu, A.; Dao, T. Mamba: Linear-time sequence modeling with selective state spaces. arXiv 2023, arXiv:2312.00752. [CrossRef]
+24. Zhu, L.; Liao, B.; Zhang, Q.; Wang, X.; Liu, W.; Wang, X. Vision Mamba: Efficient visual representation learning with bidirectional
+state space model. arXiv 2024, arXiv:2401.09417. [CrossRef]
+25. Woo, S.; Park, J.; Lee, J.Y.; Kweon, I.S. CBAM: Convolutional block attention module. In Proceedings of the European Conference
+on Computer Vision (ECCV), Munich, Germany, 8–14 September 2018; Springer: Cham, Switzerland, 2018; pp. 3–19.
+26. Rukhovich, D.; Vorontsova, A.; Konushin, A. FCAf3D: Fully convolutional anchor-free 3D object detection. In Proceedings of
+the European Conference on Computer Vision (ECCV), Tel Aviv, Israel, 23–27 October 2022; Springer: Cham, Switzerland, 2022;
+pp. 477–493.
+27. Ren, C.; Wang, A.; Yang, C.; Wu, J.; Wang, M. Frequency domain-based cross-layer feature aggregation network for camouflaged
+object detection. IEEE Signal Process. Lett. 2025, 32, 2005–2009. [CrossRef]
+28. Borenstein, J.; Koren, Y. Obstacle avoidance with ultrasonic sensors. IEEE J. Robot. Autom. 1988, 4, 213–218. [CrossRef]
+29. Moravec, H.P .; Elfes, A. High resolution maps from wide angle sonar. In Proceedings of the IEEE International Conference on
+Robotics and Automation, St. Louis, MO, USA, 25–28 March 1985; IEEE: Piscataway, NJ, USA, 1985; pp. 116–121.
+30. Thrun, S.; Burgard, W.; Fox, D. Probabilistic Robotics; MIT Press: Cambridge, MA, USA, 2005.
+31. Lowe, D.G. Distinctive image features from scale-invariant keypoints. Int. J. Comput. Vis. 2004, 60, 91–110. [CrossRef]
+32. Bay, H.; Tuytelaars, T.; Van Gool, L. SURF: Speeded up robust features. In Proceedings of the European Conference on Computer
+Vision (ECCV), Graz, Austria, 7–13 May 2006; Springer: Cham, Switzerland, 2006; pp. 404–417.
+33. Viola, P .; Jones, M. Rapid object detection using a boosted cascade of simple features. In Proceedings of the IEEE Conference
+on Computer Vision and Pattern Recognition (CVPR), Kauai, HI, USA, 8–14 December 2001; IEEE: Piscataway, NJ, USA, 2001;
+pp. 511–518.
+
+Fractal Fract. 2025, 9, 673 30 of 31
+34. Dalal, N.; Triggs, B. Histograms of oriented gradients for human detection. In Proceedings of the IEEE Conference on Computer
+Vision and Pattern Recognition (CVPR), San Diego, CA, USA, 20–25 June 2005; IEEE: Piscataway, NJ, USA, 2005; pp. 886–893.
+35. Felzenszwalb, P .F.; Girshick, R.B.; McAllester, D.; Ramanan, D. Object detection with discriminatively trained part-based models.
+IEEE T rans. Pattern Anal. Mach. Intell. 2010, 32, 1627–1645. [CrossRef]
+36. Dalal, N.; Triggs, B.; Schmid, C. Human detection using oriented histograms of flow and appearance. In Proceedings of
+the European Conference on Computer Vision (ECCV), Graz, Austria, 7–13 May 2006; Springer: Cham, Switzerland, 2006;
+pp. 428–441.
+37. Johnson, A.E.; Hebert, M. Using spin images for efficient object recognition in cluttered 3D scenes. IEEE T rans. Pattern Anal. Mach.
+Intell. 1999, 21, 433–449. [CrossRef]
+38. Rusu, R.B.; Blodow, N.; Beetz, M. Fast point feature histograms (FPFH) for 3D registration. In Proceedings of the IEEE International
+Conference on Robotics and Automation (ICRA), Kobe, Japan, 12–17 May 2009; IEEE: Piscataway, NJ, USA, 2009; pp. 3212–3217.
+39. Hinterstoisser, S.; Holzer, S.; Cagniart, C.; Ilic, S.; Konolige, K.; Navab, N.; Lepetit, V . Multimodal templates for real-time detection
+of texture-less objects in heavily cluttered scenes. In Proceedings of the 2011 IEEE International Conference on Computer Vision
+(ICCV), Barcelona, Spain, 6–13 November 2011; IEEE: Piscataway, NJ, USA, 2011; pp. 858–865.
+40. Girshick, R.; Donahue, J.; Darrell, T.; Malik, J. Rich feature hierarchies for accurate object detection and semantic segmentation. In
+Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), Columbus, OH, USA, 23–28 June 2014;
+IEEE: Piscataway, NJ, USA, 2014; pp. 580–587.
+41. He, K.; Zhang, X.; Ren, S.; Sun, J. Spatial pyramid pooling in deep convolutional networks for visual recognition. In Proceedings of
+the European Conference on Computer Vision (ECCV), Zurich, Switzerland, 6–12 September 2014; Springer: Cham, Switzerland,
+2014; pp. 346–361.
+42. Girshick, R. Fast R-CNN. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), Santiago, Chile,
+7–13 December 2015; IEEE: Piscataway, NJ, USA, 2015; pp. 1440–1448.
+43. Ren, S.; He, K.; Girshick, R.; Sun, J. Faster R-CNN: Towards real-time object detection with region proposal networks. In Advances
+in Neural Information Processing Systems (NeurIPS) ; MIT Press: Montreal, QC, Canada, 2015; pp. 91–99.
+44. He, K.; Gkioxari, G.; Dollár, P .; Girshick, R. Mask R-CNN. In Proceedings of the IEEE International Conference on Computer
+Vision (ICCV), Venice, Italy, 22–29 October 2017; IEEE: Piscataway, NJ, USA, 2017; pp. 2961–2969.
+45. Liu, W.; Anguelov, D.; Erhan, D.; Szegedy, C.; Reed, S.; Fu, C.-Y.; Berg, A.C. SSD: Single shot multibox detector. In Proceed-
+ings of the European Conference on Computer Vision (ECCV), Amsterdam, The Netherlands, 8–16 October 2016; Springer:
+Cham, Switzerland, 2016; pp. 21–37.
+46. Redmon, J.; Farhadi, A. YOLO9000: Better, faster, stronger. In Proceedings of the IEEE Conference on Computer Vision and
+Pattern Recognition (CVPR), Honolulu, HI, USA, 21–26 July 2017; IEEE: Piscataway, NJ, USA, 2017; pp. 7263–7271.
+47. Redmon, J.; Farhadi, A. YOLOv3: An incremental improvement. arXiv 2018, arXiv:1804.02767. [CrossRef]
+48. Bochkovskiy, A.; Wang, C.-Y.; Liao, H.-Y.M. YOLOv4: Optimal speed and accuracy of object detection.arXiv 2020, arXiv:2004.10934.
+[CrossRef]
+49. Tan, M.; Pang, R.; Le, Q.V . EfficientDet: Scalable and efficient object detection. In Proceedings of the IEEE Conference on Computer
+Vision and Pattern Recognition (CVPR), Seattle, WA, USA, 13–19 June 2020; IEEE: Piscataway, NJ, USA, 2020; pp. 10781–10790.
+50. Hu, H.; Gu, J.; Zhang, Z.; Dai, J.; Wei, Y. Relation networks for object detection. In Proceedings of the IEEE Conference on
+Computer Vision and Pattern Recognition (CVPR), Salt Lake City, UT, USA, 18–23 June 2018; IEEE: Piscataway, NJ, USA, 2018;
+pp. 3588–3597.
+51. Zhang, S.; Wen, L.; Bian, X.; Lei, Z.; Li, S.Z. Occlusion-aware R-CNN: Detecting pedestrians in a crowd. arXiv 2018,
+arXiv:1807.08407.
+52. Wang, A.; Sun, Y.; Kortylewski, A.; Yuilie, A. Robust object detection under occlusion with context-aware Compositional-
+Nets. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), Seattle, WA, USA,
+13–19 June 2020; IEEE: Piscataway, NJ, USA, 2020; pp. 12645–12654.
+53. Bodla, N.; Singh, B.; Chellappa, R.; Davis, L.S. Soft-NMS: Improving object detection with one line of code. In Proceedings of the
+IEEE International Conference on Computer Vision (ICCV), Venice, Italy, 22–29 October 2017; IEEE: Piscataway, NJ, USA, 2017;
+pp. 5562–5570.
+54. Liu, S.; Huang, D.; Wang, Y. Learning spatial fusion for single-shot object detection. arXiv 2019, arXiv:1911.09516. [CrossRef]
+55. Ghiasi, G.; Lin, T.Y.; Le, Q.V . NAS-FPN: Learning scalable feature pyramid architecture for object detection. In Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), Long Beach, CA, USA, 15–20 June 2019; IEEE:
+Piscataway, NJ, USA, 2019; pp. 7036–7045.
+56. Li, Y.; Chen, Y.; Wang, N.; Zhang, Z. Scale-aware Trident Networks for object detection. In Proceedings of the IEEE/CVF
+International Conference on Computer Vision (ICCV), Seoul, Republic of Korea, 27 October–2 November 2019; IEEE:
+Piscataway, NJ, USA, 2019; pp. 6054–6063.
+
+Fractal Fract. 2025, 9, 673 31 of 31
+57. Wang, J.; Chen, K.; Yang, S.; Loy, C.C.; Lin, D. Region proposal by guided anchoring. In Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition (CVPR), Long Beach, CA, USA, 15–20 June 2019; IEEE: Piscataway, NJ, USA, 2019;
+pp. 2965–2974.
+58. Wang, J.; Chen, K.; Xu, R.; Liu, Z.; Loy, C.C.; Lin, D. CARAFE: Content-aware reassembly of features. In Proceedings of the
+IEEE/CVF International Conference on Computer Vision (ICCV), Seoul, Republic of Korea, 27 October–2 November 2019; IEEE:
+Piscataway, NJ, USA, 2019; pp. 3007–3016.
+59. Qin, Z.; Zhang, P .; Wu, F.; Li, X. FcaNet: Frequency channel attention networks. In Proceedings of the IEEE/CVF Interna-
+tional Conference on Computer Vision (ICCV), Montreal, QC, Canada, 10–17 October 2021; IEEE: Piscataway, NJ, USA, 2021;
+pp. 783–792.
+60. Qi, C.R.; Litany, O.; He, K.; Guibas, L.J. Deep Hough voting for 3D object detection in point cloud. In Proceedings of the
+IEEE/CVF International Conference on Computer Vision (ICCV), Seoul, Republic of Korea, 27 October–2 November 2019; IEEE:
+Piscataway, NJ, USA, 2019; pp. 9276–9285.
+61. Qi, C.R.; Chen, X.; Litany, O.; Guibas, L.J. ImVoteNet: Boosting 3D object detection in point clouds with image votes. In Pro-
+ceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), Seattle, WA, USA, 13–19 June 2020;
+IEEE: Piscataway, NJ, USA, 2020; pp. 4404–4413.
+62. Zhang, Z.; Sun, B.; Xu, H. H3DNet: 3D object detection using hybrid geometric primitives. In Proceedings of the European
+Conference on Computer Vision (ECCV), Glasgow, UK, 23–28 August 2020; Springer: Cham, Switzerland, 2020; pp. 311–329.
+63. Misra, I.; Girdhar, R.; Joulin, A. 3DETR: An end-to-end transformer model for 3D object detection. In Proceedings of the
+IEEE/CVF International Conference on Computer Vision (ICCV), Montreal, QC, Canada, 10–17 October 2021; IEEE: Piscataway,
+NJ, USA, 2021; pp. 2926–2937.
+64. Song, S.; Xiao, J. Deep sliding shapes for amodal 3D object detection in RGB-D images. In Proceedings of the IEEE Conference
+on Computer Vision and Pattern Recognition (CVPR), Las Vegas, NV , USA, 27–30 June 2016; IEEE: Piscataway, NJ, USA, 2016;
+pp. 808–816.
+65. Zhou, M.; Li, B.; Wang, J. Optimization of hyperparameters in object detection models based on fractal loss function. Fractal Fract.
+2022, 6, 706. [CrossRef]
+66. Vaswani, A.; Shazeer, N.; Parmar, N.; Uszkoreit, J.; Jones, L.; Gomez, A.N.; Kaiser, L.; Polosukhin, I. Attention is all you need.
+Advances in neural information processing systems. arXiv 2017, arXiv:1706.03762.
+67. Nagy, M. Furniture Detection Dataset[DB/OL]. Roboflow Universe. Roboflow. 2023. Available online: https://universe.roboflow.
+com/mokhamed-nagy-u69zl/furniture-detection-qiufc (accessed on 20 May 2025).
+Disclaimer/Publisher’s Note: The statements, opinions and data contained in all publications are solely those of the individual
+author(s) and contributor(s) and not of MDPI and/or the editor(s). MDPI and/or the editor(s) disclaim responsibility for any injury to
+people or property resulting from any ideas, methods, instructions or products referred to in the content.
