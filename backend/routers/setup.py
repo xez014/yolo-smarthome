@@ -1,8 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import create_engine
 
 from config import save_db_config, get_database_url
+from auth import get_current_user
 import database
 
 router = APIRouter(prefix="/api/system", tags=["系统配置"])
@@ -24,7 +25,7 @@ async def system_status():
     return {"is_setup": is_setup}
 
 @router.post("/test-db")
-async def test_db_connection(cfg: DBConfig):
+async def test_db_connection(cfg: DBConfig, user: str = Depends(get_current_user)):
     """仅测试传入的数据库连通性"""
     url = f"mysql+pymysql://{cfg.user}:{cfg.password}@{cfg.host}:{cfg.port}/{cfg.dbname}?charset=utf8mb4"
     try:
@@ -36,7 +37,7 @@ async def test_db_connection(cfg: DBConfig):
         return {"status": "error", "message": f"连接失败: {str(e)}"}
 
 @router.post("/init-db")
-async def initialize_system(cfg: DBConfig):
+async def initialize_system(cfg: DBConfig, user: str = Depends(get_current_user)):
     """保存凭据并创建数据表"""
     try:
         save_db_config(cfg.host, cfg.port, cfg.user, cfg.password, cfg.dbname)

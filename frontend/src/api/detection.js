@@ -10,13 +10,15 @@ export function getClasses() {
 }
 
 /**
- * 按类别搜索物品最后出现位置
- * @param {string} objectClass - 物品类别英文名
+ * 按类别或中文关键词搜索物品最后出现位置
+ * @param {string|null} objectClass - 物品类别英文名（可选）
+ * @param {string|null} keyword - 中英文关键词（可选）
  */
-export function searchObject(objectClass) {
-  return axios.get(`${API_BASE}/api/detection/search`, {
-    params: { object_class: objectClass }
-  })
+export function searchObject(objectClass, keyword) {
+  const params = {}
+  if (objectClass) params.object_class = objectClass
+  if (keyword) params.keyword = keyword
+  return axios.get(`${API_BASE}/api/detection/search`, { params })
 }
 
 /**

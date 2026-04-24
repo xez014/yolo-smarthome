@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import CORS_ORIGINS, SNAPSHOTS_DIR
 from database import init_db
 from routers import video, detection, stats, setup
+import auth
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,6 +24,8 @@ async def lifespan(app: FastAPI):
     # === 启动 ===
     print("🚀 YOLO-SmartHome 后端服务启动中...")
     init_db()  # init_db internal logic now handles skipping if unconfigured
+    from snapshot_cleaner import start_cleaner
+    start_cleaner()
     print("✅ 服务就绪！")
     yield
     # === 关闭 ===
@@ -53,6 +56,7 @@ SNAPSHOTS_DIR.mkdir(exist_ok=True)
 app.mount("/snapshots", StaticFiles(directory=str(SNAPSHOTS_DIR)), name="snapshots")
 
 # === 注册路由 ===
+app.include_router(auth.router)
 app.include_router(video.router)
 app.include_router(detection.router)
 app.include_router(stats.router)

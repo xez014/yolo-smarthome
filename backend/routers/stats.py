@@ -13,9 +13,10 @@ from database import get_db
 from models import DetectionRecord, DetectionStat, ObjectLastSeen
 from schemas import StatOverview, FrequencyItem, TimelineItem
 from detection_engine import engine_instance
+from auth import get_current_user
 import config
 
-router = APIRouter(prefix="/api/stats", tags=["统计数据"])
+router = APIRouter(prefix="/api/stats", tags=["统计数据"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/overview", response_model=StatOverview)

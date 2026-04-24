@@ -12,3 +12,4 @@ websockets
 pydantic
 cryptography
 Pillow
+python-jose[cryptography]

@@ -15,6 +15,14 @@ services:
     #   - "8000:8000" # Not needed for external exposure since Nginx handles it
     environment:
       - TZ=Asia/Shanghai
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - SNAPSHOT_RETAIN_DAYS=${SNAPSHOT_RETAIN_DAYS:-7}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     networks:
       - default
       - 1panel-network
@@ -30,6 +38,11 @@ services:
       - "10080:80"
     environment:
       - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     networks:
       - default
       - 1panel-network

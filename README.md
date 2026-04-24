@@ -72,6 +72,10 @@ yolo-smarthome/
 ```bash
 git clone https://github.com/xez014/yolo-smarthome.git
 cd yolo-smarthome
+
+# 可选：自定义管理员密码（默认 admin123）
+export ADMIN_PASSWORD=your_secure_password
+
 docker compose up -d --build
 ```
 *提示：初次构建因需要下载底层的 libgl1/libglib2 依赖以及 Node 22 环境，请耐心等待 3-5 分钟。*
@@ -80,9 +84,19 @@ docker compose up -d --build
 服务启动后，前端监听在宿主机的 `10080` 端口。推荐使用 1Panel 或宝塔面板新建一个静态站点反向代理至 `http://127.0.0.1:10080`。
 > **⚠️ 开启本地摄像头的必要条件**：现代浏览器安全策略强制规定，网页若要调用电脑内置摄像头（玩法三），必须在 **HTTPS** 协议下运行。请务必为您绑定的域名申请并在面板挂载 Let's Encrypt SSL 证书！
 
-### 3. 图形化向导装配
-配置完域名与 HTTPS 后，通过浏览器访问您的域名 `https://your-domain.com`，系统会自动拦截跳转至 **系统初始化向导 (Setup)**。
+### 3. 登录系统
+配置完域名与 HTTPS 后，通过浏览器访问您的域名 `https://your-domain.com`，系统会自动跳转至**登录页面**。使用您在 `ADMIN_PASSWORD` 中设置的密码登录（默认为 `admin123`）。
+
+### 4. 图形化向导装配
+登录后，若系统检测到数据库尚未配置，会自动跳转至 **系统初始化向导 (Setup)**。
 在页面填写您现有的 MySQL 数据库连通信息（如果使用 1Panel，Host 可以直接使用 `1panel-network` 内的容器内网 IP 或容器名称）。点击测试通过并初始化之后，系统自动为您在库中建表，完成装配并进入监控大屏。
+
+### 5. 升级更新
+```bash
+cd yolo-smarthome
+git pull
+docker compose up -d --build
+```
 
 
 ## 💻 本地开发指南
@@ -111,3 +125,4 @@ docker compose up -d --build
 - [x] **Milestone 3:** 跑通 FastAPI 异步处理管线与 RTSP 视频流，完美解决数据库重复高频写入的死锁。
 - [x] **Milestone 4:** 开发出极具现代感和未来感的 Vue 3 监控大屏，并独创实现基于本地浏览器的 WebRTC 云端渲染推流架构。
 - [x] **Milestone 5:** Nginx 代理跨域切割，容器化网络同传，全面达成 Docker 一键极速部署工业标准。
+- [x] **Milestone 6:** JWT 登录鉴权、中文关键词检索、快照生命周期清理、模型评估与对比脚本、Docker healthcheck 等全面安全与工程化升级。

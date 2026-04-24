@@ -7,10 +7,11 @@ import asyncio
 import time
 from datetime import datetime
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Depends
 from fastapi.responses import StreamingResponse
 
 from detection_engine import engine_instance
+from auth import get_current_user, verify_ws_token
 import config
 
 router = APIRouter(prefix="/api/video", tags=["视频推流"])
@@ -69,11 +70,17 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @router.websocket("/ws/push")
-async def push_inference_endpoint(websocket: WebSocket):
+async def push_inference_endpoint(websocket: WebSocket, token: str = Query(default="")):
     """
     客户端推流推理 WebSocket
     浏览器发送原始 JPEG 帧字节 → 服务端 YOLO 推理 → 返回 JSON {image: base64, detections: [...]}
+    需通过 ?token=xxx 传递认证令牌
     """
+    # WebSocket 鉴权
+    if not verify_ws_token(token):
+        await websocket.close(code=4001, reason="认证失败")
+        return
+
     await websocket.accept()
     import base64
     try:
@@ -104,7 +111,10 @@ async def push_inference_endpoint(websocket: WebSocket):
 
 
 @router.post("/start")
-async def start_detection(source: str = Query(default=None, description="视频源（摄像头索引或视频文件路径）")):
+async def start_detection(
+    source: str = Query(default=None, description="视频源（摄像头索引或视频文件路径）"),
+    user: str = Depends(get_current_user)
+):
     """
     启动摄像头推理
     - source: 不传则使用默认摄像头(0)，也可传入视频文件路径
@@ -122,13 +132,13 @@ async def start_detection(source: str = Query(default=None, description="视频�
 
 
 @router.post("/stop")
-async def stop_detection():
+async def stop_detection(user: str = Depends(get_current_user)):
     """停止推理"""
     result = engine_instance.stop()
     return result
 
 
 @router.get("/status")
-async def get_status():
+async def get_status(user: str = Depends(get_current_user)):
     """获取推理引擎当前状态"""
     return engine_instance.get_status()

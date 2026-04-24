@@ -6,6 +6,12 @@ const routes = [
     redirect: '/dashboard'
   },
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/LoginView.vue'),
+    meta: { title: '登录', public: true }
+  },
+  {
     path: '/setup',
     name: 'Setup',
     component: () => import('../views/SetupView.vue'),
@@ -39,10 +45,36 @@ const router = createRouter({
 import axios from 'axios'
 
 router.beforeEach(async (to, from, next) => {
+  // 1. 公开页面（登录页）直接放行
+  if (to.meta.public) {
+    next()
+    return
+  }
+
+  // 2. 检查是否已登录（有 token）
+  const token = localStorage.getItem('token')
+  if (!token) {
+    next('/login')
+    return
+  }
+
+  // 3. 验证 token 是否有效
+  try {
+    await axios.get('/api/auth/verify', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+  } catch (err) {
+    // token 无效或过期，清除并跳转登录
+    localStorage.removeItem('token')
+    next('/login')
+    return
+  }
+
+  // 4. 已登录，检查系统是否初始化
   try {
     const res = await axios.get('/api/system/status')
     const isSetup = res.data.is_setup
-    
+
     if (!isSetup && to.path !== '/setup') {
       next('/setup')
     } else if (isSetup && to.path === '/setup') {
@@ -51,7 +83,6 @@ router.beforeEach(async (to, from, next) => {
       next()
     }
   } catch (err) {
-    // 若请求连不通，说明可能正在启动，先放行或引至setup
     next()
   }
 })

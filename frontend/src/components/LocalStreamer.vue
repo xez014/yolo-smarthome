@@ -158,7 +158,10 @@ function startFileStream() {
 
 // ── 核心：WebSocket 推流 ───────────────────────────────────
 function connectPushWS(getVideoEl) {
-  ws = new WebSocket(WS_PUSH_URL)
+  // WebSocket 鉴权：通过 query 参数附加 JWT Token
+  const token = localStorage.getItem('token') || ''
+  const wsUrl = `${WS_PUSH_URL}?token=${encodeURIComponent(token)}`
+  ws = new WebSocket(wsUrl)
   ws.binaryType = 'arraybuffer'
 
   ws.onopen = () => {

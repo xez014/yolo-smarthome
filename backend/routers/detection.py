@@ -12,9 +12,10 @@ from sqlalchemy import desc
 from database import get_db
 from models import DetectionRecord, ObjectLastSeen
 from schemas import DetectionRecordOut, ObjectSearchResult, PaginatedResponse, ClassItem
+from auth import get_current_user
 import config
 
-router = APIRouter(prefix="/api/detection", tags=["物品检测"])
+router = APIRouter(prefix="/api/detection", tags=["物品检测"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/classes", response_model=List[ClassItem])
@@ -32,13 +33,31 @@ async def get_classes():
 
 @router.get("/search", response_model=Optional[ObjectSearchResult])
 async def search_object(
-    object_class: str = Query(..., description="物品类别英文名称，如 laptop, chair"),
+    object_class: str = Query(None, description="物品类别英文名称，如 laptop, chair"),
+    keyword: str = Query(None, description="中英文关键词搜索，如 笔记本、遥控器、laptop"),
     db: Session = Depends(get_db)
 ):
     """
     按类别查询物品最后出现的位置和时间
     核心功能："我的笔记本电脑最后出现在哪里？"
+    支持中文关键词模糊匹配
     """
+    # 如果传了 keyword 但没传 object_class，做中英文反查
+    if keyword and not object_class:
+        keyword = keyword.strip()
+        # 先尝试精确匹配英文名
+        if keyword in config.CLASS_NAMES:
+            object_class = keyword
+        else:
+            # 中文模糊匹配
+            for en, zh in config.CLASS_NAMES_ZH.items():
+                if keyword in zh or keyword in en or zh in keyword:
+                    object_class = en
+                    break
+
+    if not object_class:
+        return None
+
     result = db.query(ObjectLastSeen).filter_by(object_class=object_class).first()
     if not result:
         return None

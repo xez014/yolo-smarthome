@@ -9,9 +9,19 @@
     <!-- 搜索栏 -->
     <div class="glass-card search-bar">
       <div class="search-controls">
+        <el-input
+          v-model="searchKeyword"
+          placeholder="输入中文或英文关键词，如 笔记本、遥控器"
+          clearable
+          style="width: 240px;"
+          @keyup.enter="handleKeywordSearch"
+        >
+          <template #prefix>🔎</template>
+        </el-input>
+
         <el-select
           v-model="selectedClass"
-          placeholder="选择物品类别"
+          placeholder="或选择物品类别"
           clearable
           filterable
           style="width: 220px;"
@@ -35,13 +45,13 @@
           @change="handleSearch"
         />
 
-        <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
+        <el-button type="primary" :icon="Search" @click="handleKeywordSearch">搜索</el-button>
         <el-button :icon="RefreshRight" @click="handleReset">重置</el-button>
       </div>
     </div>
 
     <!-- 物品最后出现位置一览 -->
-    <div v-if="!selectedClass && lastSeenList.length > 0" class="section">
+    <div v-if="!selectedClass && !searchKeyword && lastSeenList.length > 0" class="section">
       <h2 class="section-title">📍 各物品最后出现位置</h2>
       <div class="card-grid">
         <SearchCard
@@ -132,7 +142,7 @@
     </div>
 
     <!-- 空状态 -->
-    <div v-if="!selectedClass && lastSeenList.length === 0" class="empty-state" style="padding: 80px 20px;">
+    <div v-if="!selectedClass && !searchKeyword && lastSeenList.length === 0" class="empty-state" style="padding: 80px 20px;">
       <div class="empty-icon">🔍</div>
       <div class="empty-text">暂无检测数据，请先启动实时检测</div>
     </div>
@@ -156,6 +166,7 @@ import { SNAPSHOT_BASE_URL } from '../api/video.js'
 const classNameMap = ref({})
 const classList = ref([])
 const selectedClass = ref('')
+const searchKeyword = ref('')
 const dateRange = ref(null)
 const searchResult = ref(null)
 const lastSeenList = ref([])
@@ -188,6 +199,29 @@ async function fetchLastSeen() {
   } catch (e) {}
 }
 
+async function handleKeywordSearch() {
+  if (searchKeyword.value && searchKeyword.value.trim()) {
+    // 关键词搜索模式
+    selectedClass.value = ''
+    try {
+      const res = await searchObject(null, searchKeyword.value.trim())
+      if (res.data) {
+        searchResult.value = res.data
+        selectedClass.value = res.data.object_class
+        currentPage.value = 1
+        fetchHistory()
+      } else {
+        searchResult.value = null
+        historyList.value = []
+      }
+    } catch (e) {
+      searchResult.value = null
+    }
+  } else {
+    handleSearch()
+  }
+}
+
 async function handleSearch() {
   if (!selectedClass.value) {
     searchResult.value = null
@@ -195,6 +229,7 @@ async function handleSearch() {
     return
   }
 
+  searchKeyword.value = ''
   try {
     const res = await searchObject(selectedClass.value)
     searchResult.value = res.data
@@ -232,6 +267,7 @@ async function fetchHistory() {
 
 function handleReset() {
   selectedClass.value = ''
+  searchKeyword.value = ''
   dateRange.value = null
   searchResult.value = null
   historyList.value = []
