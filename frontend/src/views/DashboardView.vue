@@ -87,18 +87,6 @@
               </div>
             </div>
 
-            <!-- 视频文件路径输入 -->
-            <div v-if="sourceType === 'video'" class="source-input-row">
-              <el-input
-                v-model="videoFilePath"
-                placeholder="输入视频文件绝对路径，如 D:\videos\demo.mp4"
-                clearable
-                style="flex: 1;"
-              >
-                <template #prepend>📁</template>
-              </el-input>
-            </div>
-
             <!-- RTSP 地址输入 -->
             <div v-if="sourceType === 'rtsp'" class="source-input-row">
               <el-input
@@ -111,24 +99,10 @@
               </el-input>
             </div>
 
-            <!-- 摄像头索引（服务端摄像头） -->
-            <div v-if="sourceType === 'webcam'" class="source-input-row">
-              <el-input-number
-                v-model="cameraIndex"
-                :min="0"
-                :max="10"
-                controls-position="right"
-                style="width: 140px;"
-              />
-              <span style="font-size: 13px; color: var(--text-muted); margin-left: 8px;">
-                摄像头索引（0=服务器默认摄像头）
-              </span>
-            </div>
-
             <!-- 本地摄像头提示 -->
             <div v-if="sourceType === 'local-webcam'" class="source-input-row">
               <span style="font-size:13px; color: var(--text-secondary);">
-                📷 将使用您当前浏览器的摄像头推流至云端推理（需要 HTTPS）
+                📷 将使用您当前浏览器的摄像头推流至服务端推理（需要 HTTPS）
               </span>
             </div>
           </div>
@@ -200,9 +174,7 @@ const realtimeData = ref({
 })
 
 // 视频源选择
-const sourceType = ref('webcam')
-const cameraIndex = ref(0)
-const videoFilePath = ref('')
+const sourceType = ref('rtsp')
 const rtspUrl = ref('')
 
 // 本地推流状态
@@ -211,17 +183,15 @@ const isLocalStreaming = ref(false)
 const isLocalMode = computed(() => sourceType.value === 'local-webcam' || sourceType.value === 'local-video')
 
 const sourceOptions = [
-  { value: 'webcam',       label: '服务器摄像头', icon: '🖥️' },
-  { value: 'video',        label: '服务器视频',   icon: '🎞️' },
-  { value: 'rtsp',         label: '网络流',       icon: '🌐' },
-  { value: 'local-webcam', label: '本地摄像头',   icon: '📷' },
-  { value: 'local-video',  label: '本地视频',     icon: '📂' },
+  { value: 'rtsp',         label: '网络流',     icon: '🌐' },
+  { value: 'local-webcam', label: '本地摄像头', icon: '📷' },
+  { value: 'local-video',  label: '本地视频',   icon: '📂' },
 ]
 
 const statusLabel = computed(() => {
-  if (isLocalStreaming.value) return '📷 本地推流中 → 云端推理'
+  if (isLocalStreaming.value) return '📷 本地推流中 → 服务端推理'
   if (!engineStatus.value.is_running) return '已停止'
-  const labels = { webcam: '🖥️ 服务器摄像头', video: '🎞️ 视频文件播放中', rtsp: '🌐 网络流接入中' }
+  const labels = { rtsp: '🌐 网络流接入中' }
   return labels[engineStatus.value.source_type] || '运行中'
 })
 
@@ -282,23 +252,14 @@ function connectWebSocket() {
 }
 
 function getSourceValue() {
-  switch (sourceType.value) {
-    case 'webcam': return String(cameraIndex.value)
-    case 'video':
-      if (!videoFilePath.value.trim()) {
-        ElMessage.warning('请输入服务器视频文件路径')
-        return null
-      }
-      return videoFilePath.value.trim()
-    case 'rtsp':
-      if (!rtspUrl.value.trim()) {
-        ElMessage.warning('请输入网络流地址')
-        return null
-      }
-      return rtspUrl.value.trim()
-    default:
-      return '0'
+  if (sourceType.value === 'rtsp') {
+    if (!rtspUrl.value.trim()) {
+      ElMessage.warning('请输入网络流地址')
+      return null
+    }
+    return rtspUrl.value.trim()
   }
+  return null
 }
 
 async function handleStart() {
@@ -315,8 +276,7 @@ async function handleStart() {
   try {
     const res = await startDetection(source)
     if (res.data.status === 'started') {
-      const labels = { webcam: '服务器摄像头', video: '服务器视频文件', rtsp: '网络流' }
-      ElMessage.success(`${labels[sourceType.value] || ''}推理已启动`)
+      ElMessage.success('网络流推理已启动')
       engineStatus.value.is_running = true
       engineStatus.value.source_type = sourceType.value
     } else if (res.data.status === 'already_running') {
