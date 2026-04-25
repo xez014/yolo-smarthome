@@ -32,34 +32,53 @@
 ```text
 yolo-smarthome/
 │
-├── data_pipeline/           # 数据工程模块 (已跑通，产出 COCO 子集)
-├── model_training/          # 算法模型模块 (已产出 best.pt 权重)
+├── data_pipeline/              # 数据工程模块 (已跑通，产出 SmartHome-COCO 子集)
 │
-├── backend/                 # FastAPI 后端中台
-│   ├── main.py              # 全局生命周期与服务入口
-│   ├── detection_engine.py  # 核心引擎 (YOLO推理、ByteTrack追踪、内存聚合落库)
-│   ├── config.py            # 动态 JSON 配置热加载
-│   ├── database.py          # 懒加载 SQLAlchemy 连接池
-│   ├── models.py            # ORM 实体类
-│   ├── routers/             # API 路由
-│   │   ├── setup.py         # 数据库初始化向导接口
-│   │   ├── video.py         # WebSocket 双模推流与 MJPEG 接口
-│   │   └── stats.py         # 聚合统计看板接口
-│   └── data/                # [持久化挂载卷] - sqlite/json 等配置
-│   └── snapshots/           # [持久化挂载卷] - 物品留存快照原图
+├── model_training/             # 算法模型模块
+│   ├── train.py                # YOLO11s 训练脚本
+│   ├── val.py                  # 验证集评估 (每类 AP、混淆矩阵、PR/F1 曲线)
+│   ├── benchmark.py            # YOLO11n vs YOLO11s 精度-速度对比脚本
+│   ├── inspect_model.py        # 权重元数据与训练曲线分析工具
+│   └── weights/best.pt         # YOLO11n 轻量权重 (对比备用)
 │
-├── frontend/                # Vue 3 前端应用
+├── results-01/                 # YOLO11s 主训练产物 (生产推理使用)
+│   └── runs/train_smarthome_s/weights/best.pt
+│
+├── backend/                    # FastAPI 后端中台
+│   ├── main.py                 # 全局生命周期与服务入口
+│   ├── auth.py                 # JWT 鉴权模块 (登录/Token 签发/依赖注入)
+│   ├── detection_engine.py     # 核心引擎 (YOLO推理、ByteTrack追踪、内存聚合落库)
+│   ├── snapshot_cleaner.py     # 快照生命周期管理 (后台线程定时清理过期截帧)
+│   ├── config.py               # 集中配置 (密码优先读 DB_PASSWORD 环境变量，不写磁盘)
+│   ├── database.py             # 懒加载 SQLAlchemy 连接池
+│   ├── models.py               # ORM 实体类
+│   ├── schemas.py              # Pydantic 请求/响应模型
+│   ├── routers/
+│   │   ├── setup.py            # 数据库初始化向导接口
+│   │   ├── video.py            # WebSocket 双模推流与 MJPEG 接口 (JWT 保护)
+│   │   ├── detection.py        # 物品检索、历史记录、中文关键词搜索接口
+│   │   └── stats.py            # 聚合统计看板接口
+│   ├── data/                   # [持久化挂载卷] - JSON 配置 (不含密码明文)
+│   └── snapshots/              # [持久化挂载卷] - 物品留存快照原图
+│
+├── frontend/                   # Vue 3 前端应用
 │   ├── src/
-│   │   ├── components/      # (LocalStreamer 推流器、DetectionPanel 检测面板等)
-│   │   ├── views/           # (Setup向导、Dashboard监控台、History历史检索)
-│   │   ├── api/             # 同域相对路径 axios 封装
-│   │   └── router/          # 全局路由拦截与守卫
-│   ├── nginx.conf           # 生产级 Nginx 配置与 WebSocket 代理规则
-│   └── Dockerfile.frontend  # Node.js 22 编译环境
+│   │   ├── components/         # LocalStreamer 推流器、DetectionPanel、SearchCard、StatsChart、VideoPlayer
+│   │   ├── views/              # LoginView 登录页、SetupView 向导、DashboardView 监控台、SearchView 检索、StatsView 统计
+│   │   ├── api/                # 同域相对路径 axios 封装 (video.js / detection.js / stats.js)
+│   │   └── router/             # 全局路由拦截与 JWT Token 守卫
+│   ├── nginx.conf              # 生产级 Nginx 配置与 WebSocket 代理规则
+│   └── Dockerfile.frontend     # Node.js 22 编译环境
 │
-├── docker-compose.yml       # 生产环境一键编排脚本 (已对接 1panel-network)
-├── Dockerfile.backend       # 包含 OpenCV C++ 底层依赖的 Python 运行环境
-└── README.md                # 项目说明文档
+├── docs/                       # 毕设文档
+│   ├── 任务书.md
+│   ├── 开题报告.md
+│   ├── 文献综述.md
+│   └── 项目改进建议.md
+│
+├── docker-compose.yml          # 生产环境一键编排脚本 (含前后端 healthcheck)
+├── Dockerfile.backend          # 包含 OpenCV C++ 底层依赖的 Python 运行环境
+└── README.md                   # 项目说明文档
 ```
 
 
@@ -125,4 +144,4 @@ docker compose up -d --build
 - [x] **Milestone 3:** 跑通 FastAPI 异步处理管线与 RTSP 视频流，完美解决数据库重复高频写入的死锁。
 - [x] **Milestone 4:** 开发出极具现代感和未来感的 Vue 3 监控大屏，并独创实现基于本地浏览器的 WebRTC 云端渲染推流架构。
 - [x] **Milestone 5:** Nginx 代理跨域切割，容器化网络同传，全面达成 Docker 一键极速部署工业标准。
-- [x] **Milestone 6:** JWT 登录鉴权、中文关键词检索、快照生命周期清理、模型评估与对比脚本、Docker healthcheck 等全面安全与工程化升级。
+- [x] **Milestone 6:** JWT 登录鉴权、中文关键词检索、快照定时清理（`snapshot_cleaner.py`）、`val.py` 验证集评估 + `benchmark.py` 模型对比脚本、Docker healthcheck、数据库密码安全化（`DB_PASSWORD` 环境变量优先，不再明文写入磁盘）等全面安全与工程化升级。

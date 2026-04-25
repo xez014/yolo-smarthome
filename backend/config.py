@@ -17,6 +17,9 @@ import json
 DB_CONFIG_FILE = BASE_DIR / "data" / "database_config.json"
 DB_CONFIG_FILE.parent.mkdir(exist_ok=True)
 
+# 运行时内存密码（仅存活于进程生命周期，不持久化）
+_runtime_password: str = ""
+
 def load_db_config():
     if DB_CONFIG_FILE.exists():
         try:
@@ -27,12 +30,17 @@ def load_db_config():
     return {}
 
 def save_db_config(host, port, user, password, dbname):
+    """只把非敏感信息持久化到 JSON；密码仅写入进程内存"""
+    global _runtime_password
+    _runtime_password = password  # 内存保留，用于本次运行
     config = {
-        "host": host, "port": port, "user": user, 
-        "password": password, "dbname": dbname
+        "host": host, "port": port, "user": user,
+        "dbname": dbname
+        # password 故意不写入文件，避免明文泄露
     }
     with open(DB_CONFIG_FILE, 'w') as f:
         json.dump(config, f)
+
 
 def get_database_url():
     cfg = load_db_config()
@@ -42,10 +50,16 @@ def get_database_url():
         if not h: return None
         cfg = {"host": h, "port": os.getenv("DB_PORT", "3306"),
                "user": os.getenv("DB_USER", "smarthome"),
-               "password": os.getenv("DB_PASSWORD", "20041122"),
                "dbname": os.getenv("DB_NAME", "smarthome_db")}
-               
-    return f"mysql+pymysql://{cfg['user']}:{cfg['password']}@{cfg['host']}:{cfg['port']}/{cfg['dbname']}?charset=utf8mb4"
+
+    # 密码优先级：环境变量 > 进程内存 > JSON 旧字段（向后兼容）
+    password = (
+        os.getenv("DB_PASSWORD")
+        or _runtime_password
+        or cfg.get("password", "")  # 将来谁都不写入后可移除此行
+    )
+    return (f"mysql+pymysql://{cfg['user']}:{password}"
+            f"@{cfg['host']}:{cfg['port']}/{cfg['dbname']}?charset=utf8mb4")
 # === YOLO 检测配置 ===
 CONFIDENCE_THRESHOLD = 0.25         # 检测置信度阈值（降低以提高召回率）
 IOU_THRESHOLD = 0.5                 # NMS IoU 阈值

@@ -12,9 +12,9 @@ import torch
 import csv
 
 # === 路径配置 ===
-WEIGHTS_PATH = Path(__file__).parent.parent / "results" / "runs" / "train_smarthome" / "weights" / "best.pt"
-RESULTS_CSV = Path(__file__).parent.parent / "results" / "runs" / "train_smarthome" / "results.csv"
-DATASET_YAML = Path(__file__).parent.parent / "data_pipeline" / "smarthome.yaml"
+WEIGHTS_PATH = Path(__file__).parent.parent / "results-01" / "runs" / "train_smarthome_s" / "weights" / "best.pt"
+RESULTS_CSV = Path(__file__).parent.parent / "results-01" / "runs" / "train_smarthome_s" / "results.csv"
+DATASET_YAML = Path(__file__).parent.parent / "data_pipeline" / "smarthome_coco.yaml"
 
 CLASS_NAMES = [
     "chair", "couch", "potted plant", "bed", "dining table",
