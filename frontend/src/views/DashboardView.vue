@@ -58,7 +58,6 @@
           :is-running="engineStatus.is_running"
           :fps="realtimeData.fps"
           :object-count="realtimeData.current_objects"
-          @start="handleStart"
         />
         <LocalStreamer
           v-if="isLocalMode"
@@ -67,8 +66,8 @@
           :active="isLocalStreaming"
           @detections="onPushDetections"
           @fps-update="onPushFps"
-          @started="isLocalStreaming = true"
-          @stopped="isLocalStreaming = false"
+          @started="onLocalStarted"
+          @stopped="onLocalStopped"
         />
         <!-- 控制条 -->
         <div class="control-bar glass-card" style="margin-top: 12px; padding: 16px 20px;">
@@ -293,6 +292,25 @@ async function handleStart() {
 
 async function handleLocalStop() {
   localStreamerRef.value?.stop()
+}
+
+function onLocalStarted() {
+  isLocalStreaming.value = true
+  engineStatus.value = {
+    ...engineStatus.value,
+    is_running: true,
+    source_type: sourceType.value,
+  }
+}
+
+function onLocalStopped() {
+  isLocalStreaming.value = false
+  engineStatus.value = {
+    ...engineStatus.value,
+    is_running: false,
+    source_type: 'none',
+  }
+  realtimeData.value = { fps: 0, current_objects: 0, detections: [], frame_count: 0 }
 }
 
 // 接收 LocalStreamer 推流检测结果，同步到实时检测面板

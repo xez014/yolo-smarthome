@@ -15,7 +15,7 @@
 
       <!-- 摄像头模式：用 video 元素预览 -->
       <video
-        v-show="mode === 'local-webcam' && !isStreaming"
+        v-show="mode === 'local-webcam' && !isStreaming && hasWebcamPreview"
         ref="videoRef"
         autoplay
         muted
@@ -36,10 +36,16 @@
       />
 
       <!-- 未启动占位 -->
-      <div v-if="!isStreaming && !localVideoUrl && mode !== 'local-webcam'" class="video-placeholder">
+      <div
+        v-if="!isStreaming && ((mode === 'local-webcam' && !hasWebcamPreview) || (mode === 'local-video' && !localVideoUrl))"
+        class="video-placeholder"
+      >
         <div class="placeholder-icon">{{ mode === 'local-video' ? '📂' : '📷' }}</div>
         <p style="font-size: 16px; color: var(--text-secondary);">
-          {{ mode === 'local-video' ? '请选择本地视频文件' : '点击启动以打开摄像头' }}
+          {{ mode === 'local-video' ? '请选择本地视频文件' : '摄像头未启动' }}
+        </p>
+        <p v-if="mode === 'local-webcam'" style="font-size: 13px;">
+          点击下方按钮开启本地摄像头推流
         </p>
       </div>
     </div>
@@ -65,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted } from 'vue'
+import { nextTick, onActivated, onUnmounted, ref, watch } from 'vue'
 import { FolderOpened } from '@element-plus/icons-vue'
 import { WS_PUSH_URL } from '../api/video.js'
 
@@ -92,10 +98,12 @@ const statusMsg = ref('')
 const statusType = ref('info')
 const localVideoUrl = ref('')
 const fileName = ref('')
+const hasWebcamPreview = ref(false)
 
 let ws = null
 let captureTimer = null
 let stream = null
+let currentVideoGetter = null
 let frameCount = 0
 let fpsTimer = Date.now()
 
@@ -123,6 +131,7 @@ async function startWebcam() {
     statusType.value = 'info'
     stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
     videoRef.value.srcObject = stream
+    hasWebcamPreview.value = true
     await videoRef.value.play()
     connectPushWS(() => videoRef.value)
   } catch (e) {
@@ -158,6 +167,15 @@ function startFileStream() {
 
 // ── 核心：WebSocket 推流 ───────────────────────────────────
 function connectPushWS(getVideoEl) {
+  currentVideoGetter = getVideoEl
+
+  if (ws) {
+    ws.onclose = null
+    ws.onerror = null
+    ws.close()
+    ws = null
+  }
+
   // WebSocket 鉴权：通过 query 参数附加 JWT Token
   const token = localStorage.getItem('token') || ''
   const params = new URLSearchParams({
@@ -207,12 +225,19 @@ function connectPushWS(getVideoEl) {
   ws.onerror = () => {
     statusMsg.value = '❌ 推流连接断开，请稍后重试'
     statusType.value = 'error'
-    stopStreaming()
+    stopStreaming({ closeSocket: false })
   }
 }
 
 function startCapture(getVideoEl) {
+  currentVideoGetter = getVideoEl
+  if (captureTimer) {
+    clearInterval(captureTimer)
+    captureTimer = null
+  }
+
   const canvas = canvasRef.value
+  if (!canvas) return
   const ctx = canvas.getContext('2d')
 
   captureTimer = setInterval(() => {
@@ -233,26 +258,76 @@ function startCapture(getVideoEl) {
   }, 200) // 5fps → 每200ms推一帧，控制服务器负载
 }
 
-function stopStreaming() {
+function stopStreaming({ closeSocket = true } = {}) {
   if (captureTimer) { clearInterval(captureTimer); captureTimer = null }
-  if (ws) { ws.close(); ws = null }
+  if (ws && closeSocket) {
+    ws.onclose = null
+    ws.onerror = null
+    ws.close()
+  }
+  ws = null
   if (stream) {
     stream.getTracks().forEach(t => t.stop())
     stream = null
+  }
+  if (videoRef.value) {
+    videoRef.value.pause()
+    videoRef.value.srcObject = null
+  }
+  if (fileVideoRef.value && props.mode === 'local-video') {
+    fileVideoRef.value.pause()
   }
   isStreaming.value = false
   resultImage.value = ''
   fps.value = 0
   objectCount.value = 0
+  hasWebcamPreview.value = false
+  currentVideoGetter = null
   statusMsg.value = '已停止推流'
   statusType.value = 'info'
   emit('stopped')
   emit('detections', [])
 }
 
+async function resumeMediaSource() {
+  const video = props.mode === 'local-webcam' ? videoRef.value : fileVideoRef.value
+  if (!video) return
+
+  if (props.mode === 'local-webcam' && stream && video.srcObject !== stream) {
+    video.srcObject = stream
+    hasWebcamPreview.value = true
+  }
+
+  try {
+    await video.play()
+  } catch (e) {
+    statusMsg.value = `⚠️ 浏览器暂停了媒体播放，请重新启动推流: ${e.message}`
+    statusType.value = 'error'
+  }
+}
+
+onActivated(async () => {
+  if (!isStreaming.value) return
+
+  await nextTick()
+  await resumeMediaSource()
+
+  const getter = currentVideoGetter || (() => (
+    props.mode === 'local-webcam' ? videoRef.value : fileVideoRef.value
+  ))
+
+  if (!captureTimer) {
+    startCapture(getter)
+  }
+
+  if (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+    connectPushWS(getter)
+  }
+})
+
 // 监听 active 状态自动停止
 watch(() => props.active, (val) => {
-  if (!val) stopStreaming()
+  if (!val && isStreaming.value) stopStreaming()
 })
 
 onUnmounted(() => stopStreaming())
