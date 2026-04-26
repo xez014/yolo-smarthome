@@ -122,6 +122,7 @@ async def get_realtime():
     """
     获取实时检测统计（当前帧的检测结果汇总）
     """
+    status = engine_instance.get_status()
     detections = engine_instance.current_detections
     class_counts = {}
     for det in detections:
@@ -129,8 +130,9 @@ async def get_realtime():
         class_counts[name] = class_counts.get(name, 0) + 1
 
     return {
-        "fps": round(engine_instance.current_fps, 1),
-        "total_objects": len(detections),
-        "class_counts": class_counts,
-        "is_running": engine_instance.is_running,
+        "fps": status["fps"],
+        "total_objects": status["current_objects"],
+        "class_counts": class_counts if status["is_running"] else {},
+        "is_running": status["is_running"],
+        "source_type": status["source_type"],
     }

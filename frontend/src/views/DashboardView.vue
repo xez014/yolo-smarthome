@@ -167,6 +167,8 @@ import DetectionPanel from '../components/DetectionPanel.vue'
 import { startDetection, stopDetection, getStatus, WS_URL } from '../api/video.js'
 import { getOverview } from '../api/stats.js'
 
+defineOptions({ name: 'DashboardView' })
+
 const engineStatus = ref({ is_running: false, frame_count: 0, source_type: 'none' })
 const overview = ref({ today_total: 0, active_classes: 0 })
 const realtimeData = ref({

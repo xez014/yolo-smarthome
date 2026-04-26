@@ -34,7 +34,9 @@
     <main class="main-content">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
-          <component :is="Component" />
+          <KeepAlive include="DashboardView">
+            <component :is="Component" />
+          </KeepAlive>
         </transition>
       </router-view>
     </main>

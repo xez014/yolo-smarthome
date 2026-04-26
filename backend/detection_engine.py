@@ -49,6 +49,15 @@ class DetectionEngine:
         self.current_fps: float = 0.0
         self.frame_count: int = 0
 
+        # 客户端推流状态（浏览器摄像头/本地视频通过 WebSocket 推帧）
+        self._push_connections: int = 0
+        self._push_source_type: str = "none"
+        self._push_last_frame_time: float = 0.0
+        self._push_fps: float = 0.0
+        self._push_frame_counter: int = 0
+        self._push_fps_timer: float = time.time()
+        self._push_lock = threading.Lock()
+
         # 追踪持久化控制
         self._track_history: Dict[int, int] = defaultdict(int)  # track_id -> 连续出现帧数
         self._last_snapshot_time: float = 0
@@ -126,6 +135,58 @@ class DetectionEngine:
         self._source_type = "none"
         print("⏹️ 推理已停止")
         return {"status": "stopped"}
+
+    def register_push_client(self, source_type: str = "push"):
+        """登记一个客户端推流连接，用于统计页展示实时运行状态"""
+        with self._push_lock:
+            self._push_connections += 1
+            self._push_source_type = source_type or "push"
+            self._push_last_frame_time = time.time()
+            self._push_fps_timer = self._push_last_frame_time
+            self._push_frame_counter = 0
+            self._push_fps = 0.0
+
+    def unregister_push_client(self):
+        """注销客户端推流连接"""
+        with self._push_lock:
+            self._push_connections = max(0, self._push_connections - 1)
+            has_no_push_clients = self._push_connections == 0
+            if has_no_push_clients:
+                self._push_source_type = "none"
+                self._push_fps = 0.0
+
+        if has_no_push_clients and not self.is_running:
+            with self._frame_lock:
+                self.current_frame = None
+                self.current_detections = []
+            self.current_fps = 0.0
+
+    def _is_push_active_locked(self) -> bool:
+        return (
+            self._push_connections > 0
+            and self._push_last_frame_time > 0
+            and time.time() - self._push_last_frame_time <= 3.0
+        )
+
+    def _record_push_frame(self, annotated_frame: np.ndarray, detections: List[Dict]):
+        """更新客户端推流的实时帧、检测结果和 FPS"""
+        now = time.time()
+        with self._push_lock:
+            self._push_last_frame_time = now
+            self._push_frame_counter += 1
+            elapsed = now - self._push_fps_timer
+            if elapsed >= 1.0:
+                self._push_fps = self._push_frame_counter / elapsed
+                self._push_frame_counter = 0
+                self._push_fps_timer = now
+
+        with self._frame_lock:
+            self.current_frame = annotated_frame
+            self.current_detections = detections
+
+        if not self.is_running:
+            self.current_fps = self._push_fps
+            self.frame_count += 1
 
     def _inference_loop(self):
         """推理主循环（在后台线程中运行）"""
@@ -431,6 +492,7 @@ class DetectionEngine:
 
         # 绘制检测框
         annotated = self._draw_detections(frame, detections)
+        self._record_push_frame(annotated, detections)
 
         # 节流持久化：避免每帧都写库（最小间隔 DB_WRITE_INTERVAL 秒）
         if detections:
@@ -566,18 +628,35 @@ class DetectionEngine:
 
     def get_status(self) -> Dict:
         """获取引擎当前状态"""
+        with self._push_lock:
+            push_active = self._is_push_active_locked()
+            push_source_type = self._push_source_type
+            push_fps = self._push_fps
+
+        is_running = self.is_running or push_active
+        if self.is_running:
+            fps = self.current_fps
+            source_type = self._source_type
+            source = str(self._source) if self._source is not None else None
+        elif push_active:
+            fps = push_fps
+            source_type = push_source_type
+            source = "browser_push"
+        else:
+            fps = 0.0
+            source_type = "none"
+            source = None
+
         return {
-            "is_running": self.is_running,
-            "fps": round(self.current_fps, 1),
+            "is_running": is_running,
+            "fps": round(fps, 1),
             "frame_count": self.frame_count,
-            "current_objects": len(self.current_detections),
+            "current_objects": len(self.current_detections) if is_running else 0,
             "model_loaded": self.model is not None,
-            "source_type": self._source_type,
-            "source": str(self._source) if self._source is not None else None,
+            "source_type": source_type,
+            "source": source,
         }
 
 
 # 全局引擎实例
 engine_instance = DetectionEngine()
-
-

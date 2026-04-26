@@ -160,7 +160,11 @@ function startFileStream() {
 function connectPushWS(getVideoEl) {
   // WebSocket 鉴权：通过 query 参数附加 JWT Token
   const token = localStorage.getItem('token') || ''
-  const wsUrl = `${WS_PUSH_URL}?token=${encodeURIComponent(token)}`
+  const params = new URLSearchParams({
+    token,
+    source_type: props.mode,
+  })
+  const wsUrl = `${WS_PUSH_URL}?${params.toString()}`
   ws = new WebSocket(wsUrl)
   ws.binaryType = 'arraybuffer'
 

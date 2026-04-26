@@ -48,13 +48,14 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            if engine_instance.is_running:
+            status = engine_instance.get_status()
+            if status["is_running"]:
                 detections = engine_instance.current_detections
                 data = {
-                    "fps": round(engine_instance.current_fps, 1),
-                    "frame_count": engine_instance.frame_count,
+                    "fps": status["fps"],
+                    "frame_count": status["frame_count"],
                     "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "current_objects": len(detections),
+                    "current_objects": status["current_objects"],
                     "detections": detections,
                 }
                 await websocket.send_text(json.dumps(data, ensure_ascii=False))
@@ -70,7 +71,11 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @router.websocket("/ws/push")
-async def push_inference_endpoint(websocket: WebSocket, token: str = Query(default="")):
+async def push_inference_endpoint(
+    websocket: WebSocket,
+    token: str = Query(default=""),
+    source_type: str = Query(default="push"),
+):
     """
     客户端推流推理 WebSocket
     浏览器发送原始 JPEG 帧字节 → 服务端 YOLO 推理 → 返回 JSON {image: base64, detections: [...]}
@@ -82,6 +87,7 @@ async def push_inference_endpoint(websocket: WebSocket, token: str = Query(defau
         return
 
     await websocket.accept()
+    engine_instance.register_push_client(source_type)
     import base64
     try:
         while True:
@@ -107,6 +113,8 @@ async def push_inference_endpoint(websocket: WebSocket, token: str = Query(defau
         pass
     except Exception as e:
         print(f"Push WS error: {e}")
+    finally:
+        engine_instance.unregister_push_client()
 
 
 
