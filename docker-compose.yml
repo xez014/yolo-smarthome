@@ -35,17 +35,16 @@ services:
     container_name: yolo_frontend
     restart: always
     ports:
-      - "10080:80"
+      - "${FRONTEND_PORT:-10080}:80"
     environment:
       - TZ=Asia/Shanghai
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:80"]
       interval: 30s
       timeout: 5s
       retries: 3
     networks:
       - default
-      - 1panel-network
 
 networks:
   default:

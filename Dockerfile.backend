@@ -8,6 +8,10 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+# 国内网络环境下安装 PyPI/PyTorch 相关依赖更稳定
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
 # 先拷贝 requirements.txt 进行依赖安装 (基于缓存层优化)
 COPY requirements.txt .
 
