@@ -4,6 +4,7 @@ YOLO-SmartHome 检测记录查询路由
 """
 from datetime import datetime, timedelta
 from typing import Optional, List
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -14,6 +15,17 @@ from models import DetectionRecord, ObjectLastSeen
 from schemas import DetectionRecordOut, ObjectSearchResult, PaginatedResponse, ClassItem
 from auth import get_current_user
 import config
+
+
+def existing_snapshot_path(snapshot_path: Optional[str]) -> Optional[str]:
+    if not snapshot_path:
+        return None
+
+    filename = Path(snapshot_path).name
+    if not filename:
+        return None
+
+    return snapshot_path if (config.SNAPSHOTS_DIR / filename).exists() else None
 
 router = APIRouter(prefix="/api/detection", tags=["物品检测"], dependencies=[Depends(get_current_user)])
 
@@ -70,7 +82,7 @@ async def search_object(
         last_bbox_y=result.last_bbox_y,
         last_bbox_w=result.last_bbox_w,
         last_bbox_h=result.last_bbox_h,
-        last_snapshot_path=result.last_snapshot_path,
+        last_snapshot_path=existing_snapshot_path(result.last_snapshot_path),
         last_seen_at=result.last_seen_at,
         total_count=result.total_count,
         camera_id=result.camera_id,
@@ -90,7 +102,7 @@ async def get_all_last_seen(db: Session = Depends(get_db)):
             last_bbox_y=r.last_bbox_y,
             last_bbox_w=r.last_bbox_w,
             last_bbox_h=r.last_bbox_h,
-            last_snapshot_path=r.last_snapshot_path,
+            last_snapshot_path=existing_snapshot_path(r.last_snapshot_path),
             last_seen_at=r.last_seen_at,
             total_count=r.total_count,
             camera_id=r.camera_id,
@@ -130,9 +142,15 @@ async def get_history(
         .all()
     )
 
+    response_items = []
+    for item in items:
+        row = DetectionRecordOut.model_validate(item)
+        row.snapshot_path = existing_snapshot_path(row.snapshot_path)
+        response_items.append(row)
+
     return PaginatedResponse(
         total=total,
         page=page,
         page_size=page_size,
-        items=[DetectionRecordOut.model_validate(item) for item in items]
+        items=response_items
     )

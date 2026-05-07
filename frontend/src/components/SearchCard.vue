@@ -1,11 +1,11 @@
 <template>
-  <div class="search-result-card" @click="$emit('preview', item)">
+  <div class="search-result-card" @click="handlePreview">
     <div class="card-image">
       <img
-        v-if="item.last_snapshot_path"
+        v-if="hasSnapshot"
         :src="snapshotUrl"
         :alt="item.object_class"
-        @error="imgError = true"
+        @error="handleImageError"
       />
       <div v-else class="snapshot-placeholder">
         <span style="font-size: 40px; opacity: 0.3;">📷</span>
@@ -36,23 +36,42 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { SNAPSHOT_BASE_URL } from '../api/video.js'
 
 const props = defineProps({
   item: { type: Object, required: true }
 })
 
-defineEmits(['preview'])
+const emit = defineEmits(['preview'])
 
 const imgError = ref(false)
 
+const hasSnapshot = computed(() => Boolean(props.item.last_snapshot_path) && !imgError.value)
+
 const snapshotUrl = computed(() => {
-  if (props.item.last_snapshot_path) {
+  if (hasSnapshot.value) {
     return `${SNAPSHOT_BASE_URL}${props.item.last_snapshot_path}`
   }
   return ''
 })
+
+watch(
+  () => props.item.last_snapshot_path,
+  () => {
+    imgError.value = false
+  }
+)
+
+function handleImageError() {
+  imgError.value = true
+}
+
+function handlePreview() {
+  if (hasSnapshot.value) {
+    emit('preview', props.item)
+  }
+}
 
 function formatTime(dateStr) {
   if (!dateStr) return '未知'
