@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="620" viewBox="0 0 1180 620">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/></marker></defs>
+  <style>
+    .t{font:700 23px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 15px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.p{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}
+    .ent,.ds{fill:#fff;stroke:#566676;stroke-width:1.35;rx:4}.proc{fill:#fff;stroke:#566676;stroke-width:1.5}.line{stroke:#3f4a56;stroke-width:1.55;fill:none;marker-end:url(#arrow)}
+  </style>
+  <rect width="1180" height="620" fill="#fff"/>
+  <text x="590" y="38" text-anchor="middle" class="t">0 层数据流图</text>
+  <rect x="55" y="105" width="160" height="64" class="ent"/><text x="135" y="132" text-anchor="middle" class="h">E1 用户</text><text x="135" y="154" text-anchor="middle" class="p">配置、控制、查询</text>
+  <rect x="55" y="365" width="160" height="64" class="ent"/><text x="135" y="392" text-anchor="middle" class="h">E2 视频源</text><text x="135" y="414" text-anchor="middle" class="p">视频流/图像帧</text>
+  <ellipse cx="420" cy="135" rx="125" ry="48" class="proc"/><text x="420" y="130" text-anchor="middle" class="h">1.0 系统配置</text><text x="420" y="152" text-anchor="middle" class="h">与鉴权</text>
+  <ellipse cx="420" cy="355" rx="125" ry="48" class="proc"/><text x="420" y="350" text-anchor="middle" class="h">2.0 视频感知</text><text x="420" y="372" text-anchor="middle" class="h">处理</text>
+  <ellipse cx="760" cy="245" rx="135" ry="52" class="proc"/><text x="760" y="240" text-anchor="middle" class="h">3.0 历史检索</text><text x="760" y="262" text-anchor="middle" class="h">与统计服务</text>
+  <rect x="940" y="160" width="180" height="58" class="ds"/><text x="1030" y="184" text-anchor="middle" class="h">D1 检测数据库</text><text x="1030" y="205" text-anchor="middle" class="p">记录/位置/统计</text>
+  <rect x="940" y="335" width="180" height="58" class="ds"/><text x="1030" y="359" text-anchor="middle" class="h">D2 快照文件库</text><text x="1030" y="380" text-anchor="middle" class="p">标注帧图像</text>
+  <path d="M215 135 H295" class="line"/><text x="255" y="122" text-anchor="middle" class="p">登录信息、配置</text>
+  <path d="M295 158 H215" class="line"/><text x="255" y="185" text-anchor="middle" class="p">认证结果、状态</text>
+  <path d="M215 397 H295" class="line"/><text x="255" y="384" text-anchor="middle" class="p">视频流/帧</text>
+  <path d="M215 330 H310" class="line"/><text x="255" y="318" text-anchor="middle" class="p">检测控制</text>
+  <path d="M545 355 H625" class="line"/><text x="585" y="342" text-anchor="middle" class="p">检测状态</text>
+  <path d="M895 210 H940" class="line"/><text x="918" y="198" text-anchor="middle" class="p">查询</text>
+  <path d="M545 345 H940 V189" class="line"/><text x="735" y="332" text-anchor="middle" class="p">检测记录、统计增量</text>
+  <path d="M545 375 H940 V364" class="line"/><text x="735" y="396" text-anchor="middle" class="p">标注快照</text>
+  <path d="M940 190 H895" class="line"/><text x="918" y="230" text-anchor="middle" class="p">历史与统计数据</text>
+  <path d="M940 364 H895" class="line"/><text x="918" y="402" text-anchor="middle" class="p">快照文件</text>
+  <path d="M625 245 H215" class="line"/><text x="420" y="232" text-anchor="middle" class="p">检索结果、统计图表</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="780" viewBox="0 0 1280 780">
+  <style>
+    .t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 16px "Microsoft YaHei",Arial,sans-serif;fill:#fff}.p{font:13px "Consolas","Microsoft YaHei",monospace;fill:#2f3b46}.box{fill:#fff;stroke:#566676;stroke-width:1.3;rx:4}.head{fill:#566676}
+  </style>
+  <rect width="1280" height="780" fill="#fff"/><text x="640" y="42" text-anchor="middle" class="t">数据库表结构图</text>
+  <g transform="translate(55,90)"><rect width="360" height="580" class="box"/><rect width="360" height="42" class="head"/><text x="180" y="27" text-anchor="middle" class="h">detection_records</text>
+    <text x="24" y="72" class="p">id : BigInteger PK</text><text x="24" y="104" class="p">object_class : String(50)</text><text x="24" y="136" class="p">class_id : Integer</text><text x="24" y="168" class="p">confidence : Float</text><text x="24" y="200" class="p">bbox_x : Float</text><text x="24" y="232" class="p">bbox_y : Float</text><text x="24" y="264" class="p">bbox_w : Float</text><text x="24" y="296" class="p">bbox_h : Float</text><text x="24" y="328" class="p">track_id : Integer</text><text x="24" y="360" class="p">snapshot_path : String(255)</text><text x="24" y="392" class="p">detected_at : DateTime</text><text x="24" y="424" class="p">camera_id : String(50)</text><text x="24" y="488" class="p">Index(object_class, detected_at)</text>
+  </g>
+  <g transform="translate(460,90)"><rect width="360" height="520" class="box"/><rect width="360" height="42" class="head"/><text x="180" y="27" text-anchor="middle" class="h">object_last_seen</text>
+    <text x="24" y="72" class="p">id : Integer PK</text><text x="24" y="104" class="p">object_class : String(50) UK</text><text x="24" y="136" class="p">class_id : Integer</text><text x="24" y="168" class="p">last_bbox_x : Float</text><text x="24" y="200" class="p">last_bbox_y : Float</text><text x="24" y="232" class="p">last_bbox_w : Float</text><text x="24" y="264" class="p">last_bbox_h : Float</text><text x="24" y="296" class="p">last_snapshot_path : String(255)</text><text x="24" y="328" class="p">last_seen_at : DateTime</text><text x="24" y="360" class="p">total_count : Integer</text><text x="24" y="392" class="p">camera_id : String(50)</text><text x="24" y="456" class="p">Index(last_seen_at)</text>
+  </g>
+  <g transform="translate(865,90)"><rect width="360" height="360" class="box"/><rect width="360" height="42" class="head"/><text x="180" y="27" text-anchor="middle" class="h">detection_stats</text>
+    <text x="24" y="72" class="p">id : Integer PK</text><text x="24" y="104" class="p">stat_date : Date</text><text x="24" y="136" class="p">stat_hour : Integer</text><text x="24" y="168" class="p">object_class : String(50)</text><text x="24" y="200" class="p">detection_count : Integer</text><text x="24" y="264" class="p">Unique(stat_date, stat_hour,</text><text x="24" y="292" class="p">       object_class)</text>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="520" viewBox="0 0 1180 520">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/></marker></defs>
+  <style>.t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 15px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.p{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}.box{fill:#fff;stroke:#566676;stroke-width:1.35;rx:5}.line{stroke:#3f4a56;stroke-width:1.55;fill:none;marker-end:url(#arrow)}</style>
+  <rect width="1180" height="520" fill="#fff"/><text x="590" y="42" text-anchor="middle" class="t">SmartHome-COCO 数据集构建流程</text>
+  <rect x="70" y="95" width="150" height="62" class="box"/><text x="145" y="120" text-anchor="middle" class="h">COCO 2017</text><text x="145" y="142" text-anchor="middle" class="p">图像与标注</text>
+  <rect x="275" y="95" width="170" height="62" class="box"/><text x="360" y="120" text-anchor="middle" class="h">读取标注文件</text><text x="360" y="142" text-anchor="middle" class="p">train / val JSON</text>
+  <rect x="500" y="95" width="170" height="62" class="box"/><text x="585" y="120" text-anchor="middle" class="h">筛选目标类别</text><text x="585" y="142" text-anchor="middle" class="p">20 类家居物品</text>
+  <rect x="725" y="55" width="170" height="62" class="box"/><text x="810" y="80" text-anchor="middle" class="h">复制图像文件</text><text x="810" y="102" text-anchor="middle" class="p">images/train,val</text>
+  <rect x="725" y="175" width="170" height="62" class="box"/><text x="810" y="200" text-anchor="middle" class="h">转换标注格式</text><text x="810" y="222" text-anchor="middle" class="p">COCO bbox -> YOLO</text>
+  <rect x="950" y="95" width="160" height="62" class="box"/><text x="1030" y="120" text-anchor="middle" class="h">生成数据集</text><text x="1030" y="142" text-anchor="middle" class="p">SmartHome-COCO</text>
+  <rect x="500" y="330" width="170" height="62" class="box"/><text x="585" y="355" text-anchor="middle" class="h">生成配置文件</text><text x="585" y="377" text-anchor="middle" class="p">smarthome.yaml</text>
+  <rect x="725" y="330" width="170" height="62" class="box"/><text x="810" y="355" text-anchor="middle" class="h">YOLO11 训练</text><text x="810" y="377" text-anchor="middle" class="p">读取图片与标签</text>
+  <path d="M220 126 H275" class="line"/><path d="M445 126 H500" class="line"/><path d="M670 126 H700 V86 H725" class="line"/><path d="M670 126 H700 V206 H725" class="line"/><path d="M895 86 H925 V126 H950" class="line"/><path d="M895 206 H925 V126 H950" class="line"/><path d="M1030 157 V280 H585 V330" class="line"/><path d="M670 361 H725" class="line"/>
+</svg>

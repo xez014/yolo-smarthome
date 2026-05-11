@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="640" viewBox="0 0 1180 640">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/></marker></defs>
+  <style>.t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 15px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.p{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}.box{fill:#fff;stroke:#566676;stroke-width:1.35;rx:5}.grp{fill:#f8fafc;stroke:#b8c2cc;stroke-width:1.1}.line{stroke:#3f4a56;stroke-width:1.45;fill:none;marker-end:url(#arrow)}</style>
+  <rect width="1180" height="640" fill="#fff"/>
+  <text x="590" y="42" text-anchor="middle" class="t">后端核心模块关系图</text>
+  <rect x="80" y="90" width="250" height="420" class="grp"/><text x="205" y="120" text-anchor="middle" class="h">接口层</text>
+  <rect x="115" y="155" width="180" height="50" class="box"/><text x="205" y="176" text-anchor="middle" class="h">VideoRouter</text><text x="205" y="195" text-anchor="middle" class="p">视频流 / 推流 / 启停</text>
+  <rect x="115" y="230" width="180" height="50" class="box"/><text x="205" y="251" text-anchor="middle" class="h">DetectionRouter</text><text x="205" y="270" text-anchor="middle" class="p">类别 / 检索 / 历史</text>
+  <rect x="115" y="305" width="180" height="50" class="box"/><text x="205" y="326" text-anchor="middle" class="h">StatsRouter</text><text x="205" y="345" text-anchor="middle" class="p">概览 / 频次 / 时间线</text>
+  <rect x="115" y="380" width="180" height="50" class="box"/><text x="205" y="401" text-anchor="middle" class="h">SetupRouter</text><text x="205" y="420" text-anchor="middle" class="p">数据库测试 / 初始化</text>
+  <rect x="465" y="155" width="220" height="65" class="box"/><text x="575" y="182" text-anchor="middle" class="h">AuthModule</text><text x="575" y="204" text-anchor="middle" class="p">登录、Token 生成与校验</text>
+  <rect x="465" y="300" width="220" height="70" class="box"/><text x="575" y="328" text-anchor="middle" class="h">DetectionEngine</text><text x="575" y="350" text-anchor="middle" class="p">推理、绘框、持久化</text>
+  <rect x="815" y="120" width="220" height="60" class="box"/><text x="925" y="145" text-anchor="middle" class="h">YOLO11s + ByteTrack</text><text x="925" y="166" text-anchor="middle" class="p">检测与跟踪</text>
+  <rect x="815" y="250" width="220" height="60" class="box"/><text x="925" y="275" text-anchor="middle" class="h">MySQL</text><text x="925" y="296" text-anchor="middle" class="p">检测记录、位置、统计</text>
+  <rect x="815" y="380" width="220" height="60" class="box"/><text x="925" y="405" text-anchor="middle" class="h">snapshots</text><text x="925" y="426" text-anchor="middle" class="p">检测快照文件</text>
+  <path d="M295 180 H465" class="line"/><path d="M295 255 H465 V187" class="line"/><path d="M295 330 H465 V187" class="line"/><path d="M295 405 H465 V187" class="line"/>
+  <path d="M295 180 H430 V335 H465" class="line"/><path d="M295 255 H430 V335 H465" class="line"/><path d="M295 330 H430 V335 H465" class="line"/>
+  <path d="M685 335 H815 V150" class="line"/><path d="M685 335 H770 V280 H815" class="line"/><path d="M685 335 H770 V410 H815" class="line"/>
+  <path d="M925 440 V510 H575 V370" class="line"/><text x="735" y="500" text-anchor="middle" class="p">快照清理线程</text>
+</svg>

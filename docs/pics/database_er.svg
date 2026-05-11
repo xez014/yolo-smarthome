@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="680" viewBox="0 0 1180 680">
+  <defs><marker id="crow" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="10" markerHeight="10" orient="auto"><path d="M0,0 L11,6 L0,12 M0,6 H11" stroke="#3f4a56" fill="none" stroke-width="1.2"/></marker></defs>
+  <style>
+    .t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 16px "Microsoft YaHei",Arial,sans-serif;fill:#fff}.p{font:13px "Consolas","Microsoft YaHei",monospace;fill:#2f3b46}.n{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}
+    .box{fill:#fff;stroke:#566676;stroke-width:1.35;rx:4}.head{fill:#566676}.line{stroke:#3f4a56;stroke-width:1.55;fill:none;marker-start:url(#crow)}
+  </style>
+  <rect width="1180" height="680" fill="#fff"/><text x="590" y="42" text-anchor="middle" class="t">系统数据库 E-R 图</text>
+  <g transform="translate(70,110)">
+    <rect width="300" height="380" class="box"/><rect width="300" height="42" class="head"/><text x="150" y="27" text-anchor="middle" class="h">DETECTION_RECORDS</text>
+    <text x="20" y="72" class="p">PK  id</text><text x="20" y="100" class="p">object_class</text><text x="20" y="128" class="p">class_id</text><text x="20" y="156" class="p">confidence</text><text x="20" y="184" class="p">bbox_x / bbox_y</text><text x="20" y="212" class="p">bbox_w / bbox_h</text><text x="20" y="240" class="p">track_id</text><text x="20" y="268" class="p">snapshot_path</text><text x="20" y="296" class="p">detected_at</text><text x="20" y="324" class="p">camera_id</text>
+  </g>
+  <g transform="translate(460,110)">
+    <rect width="300" height="330" class="box"/><rect width="300" height="42" class="head"/><text x="150" y="27" text-anchor="middle" class="h">OBJECT_LAST_SEEN</text>
+    <text x="20" y="72" class="p">PK  id</text><text x="20" y="100" class="p">UK  object_class</text><text x="20" y="128" class="p">class_id</text><text x="20" y="156" class="p">last_bbox_x / last_bbox_y</text><text x="20" y="184" class="p">last_bbox_w / last_bbox_h</text><text x="20" y="212" class="p">last_snapshot_path</text><text x="20" y="240" class="p">last_seen_at</text><text x="20" y="268" class="p">total_count</text><text x="20" y="296" class="p">camera_id</text>
+  </g>
+  <g transform="translate(850,110)">
+    <rect width="260" height="250" class="box"/><rect width="260" height="42" class="head"/><text x="130" y="27" text-anchor="middle" class="h">DETECTION_STATS</text>
+    <text x="20" y="72" class="p">PK  id</text><text x="20" y="100" class="p">stat_date</text><text x="20" y="128" class="p">stat_hour</text><text x="20" y="156" class="p">object_class</text><text x="20" y="184" class="p">detection_count</text><text x="20" y="212" class="p">UK(date,hour,class)</text>
+  </g>
+  <path d="M460 260 H370" class="line"/><text x="415" y="245" text-anchor="middle" class="n">updates</text><text x="385" y="280" class="n">多条明细更新一条最后位置</text>
+  <path d="M850 255 H370" class="line"/><text x="610" y="237" text-anchor="middle" class="n">aggregates</text><text x="565" y="278" class="n">多条明细聚合为小时统计</text>
+  <text x="590" y="610" text-anchor="middle" class="n">说明：当前系统以 object_class 维护最后出现位置；多摄像头扩展时可调整为 camera_id 与 object_class 联合约束。</text>
+</svg>

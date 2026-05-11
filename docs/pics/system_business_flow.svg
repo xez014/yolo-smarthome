@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1500" viewBox="0 0 1280 1500">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3f4a56"/>
+    </marker>
+    <style>
+      .title { font: 700 26px "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; fill: #1f2d3d; }
+      .lane-title { font: 700 18px "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; fill: #243447; }
+      .node-title { font: 700 15px "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; fill: #1f2d3d; }
+      .node-text { font: 13px "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; fill: #4b5966; }
+      .label { font: 13px "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; fill: #2f3b46; }
+      .lane { fill: #fbfcfd; stroke: #b8c2cc; stroke-width: 1.2; }
+      .lane-alt { fill: #f7f9fb; stroke: #b8c2cc; stroke-width: 1.2; }
+      .header { fill: #eef3f8; stroke: #b8c2cc; stroke-width: 1.2; }
+      .node { fill: #ffffff; stroke: #566676; stroke-width: 1.35; rx: 5; }
+      .decision { fill: #ffffff; stroke: #566676; stroke-width: 1.35; }
+      .data { fill: #ffffff; stroke: #566676; stroke-width: 1.35; rx: 5; }
+      .line { stroke: #3f4a56; stroke-width: 1.7; fill: none; marker-end: url(#arrow); }
+      .line-soft { stroke: #6f7f90; stroke-width: 1.35; fill: none; stroke-dasharray: 5 4; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="1500" fill="#ffffff"/>
+  <text x="640" y="44" text-anchor="middle" class="title">智能家居视觉感知与历史物品检索系统业务流程</text>
+
+  <rect x="50" y="80" width="360" height="1340" class="lane-alt"/>
+  <rect x="460" y="80" width="360" height="1340" class="lane"/>
+  <rect x="870" y="80" width="360" height="1340" class="lane-alt"/>
+
+  <rect x="50" y="80" width="360" height="46" class="header"/>
+  <rect x="460" y="80" width="360" height="46" class="header"/>
+  <rect x="870" y="80" width="360" height="46" class="header"/>
+  <text x="230" y="109" text-anchor="middle" class="lane-title">用户与前端页面</text>
+  <text x="640" y="109" text-anchor="middle" class="lane-title">后端处理过程</text>
+  <text x="1050" y="109" text-anchor="middle" class="lane-title">数据存储与输出</text>
+
+  <!-- User and frontend lane -->
+  <rect x="100" y="145" width="260" height="60" class="node"/>
+  <text x="230" y="170" text-anchor="middle" class="node-title">用户访问系统</text>
+  <text x="230" y="192" text-anchor="middle" class="node-text">打开前端页面</text>
+
+  <rect x="100" y="345" width="260" height="60" class="node"/>
+  <text x="230" y="370" text-anchor="middle" class="node-title">进入系统主页面</text>
+  <text x="230" y="392" text-anchor="middle" class="node-text">监控 / 检索 / 统计入口</text>
+
+  <polygon points="230,445 360,490 230,535 100,490" class="decision"/>
+  <text x="230" y="486" text-anchor="middle" class="node-title">选择视频来源</text>
+  <text x="230" y="506" text-anchor="middle" class="node-text">网络流 / 本地源</text>
+
+  <rect x="100" y="585" width="260" height="60" class="node"/>
+  <text x="230" y="610" text-anchor="middle" class="node-title">本地摄像头或视频</text>
+  <text x="230" y="632" text-anchor="middle" class="node-text">授权设备 / 选择文件</text>
+
+  <rect x="100" y="690" width="260" height="60" class="node"/>
+  <text x="230" y="715" text-anchor="middle" class="node-title">Canvas 截帧</text>
+  <text x="230" y="737" text-anchor="middle" class="node-text">JPEG 编码，约 5 FPS</text>
+
+  <rect x="100" y="1090" width="260" height="60" class="node"/>
+  <text x="230" y="1115" text-anchor="middle" class="node-title">实时监控展示</text>
+  <text x="230" y="1137" text-anchor="middle" class="node-text">标注画面 / 检测列表</text>
+
+  <rect x="100" y="1340" width="260" height="60" class="node"/>
+  <text x="230" y="1365" text-anchor="middle" class="node-title">检索与统计结果</text>
+  <text x="230" y="1387" text-anchor="middle" class="node-text">历史位置 / 统计图表</text>
+
+  <!-- Backend lane -->
+  <rect x="510" y="245" width="260" height="60" class="node"/>
+  <text x="640" y="270" text-anchor="middle" class="node-title">登录认证</text>
+  <text x="640" y="292" text-anchor="middle" class="node-text">校验密码或 JWT Token</text>
+
+  <rect x="510" y="445" width="260" height="60" class="node"/>
+  <text x="640" y="470" text-anchor="middle" class="node-title">提交网络流地址</text>
+  <text x="640" y="492" text-anchor="middle" class="node-text">RTSP / RTMP / HTTP</text>
+
+  <rect x="510" y="585" width="260" height="60" class="node"/>
+  <text x="640" y="610" text-anchor="middle" class="node-title">OpenCV 打开视频源</text>
+  <text x="640" y="632" text-anchor="middle" class="node-text">后端拉流模式</text>
+
+  <rect x="510" y="795" width="260" height="60" class="node"/>
+  <text x="640" y="820" text-anchor="middle" class="node-title">WebSocket 推流接收</text>
+  <text x="640" y="842" text-anchor="middle" class="node-text">接收 JPEG 二进制帧</text>
+
+  <rect x="510" y="895" width="260" height="60" class="node"/>
+  <text x="640" y="920" text-anchor="middle" class="node-title">YOLO11 推理</text>
+  <text x="640" y="942" text-anchor="middle" class="node-text">track 或 predict</text>
+
+  <rect x="510" y="995" width="260" height="60" class="node"/>
+  <text x="640" y="1020" text-anchor="middle" class="node-title">跟踪与结果整理</text>
+  <text x="640" y="1042" text-anchor="middle" class="node-text">ByteTrack / 类别映射</text>
+
+  <rect x="510" y="1095" width="260" height="60" class="node"/>
+  <text x="640" y="1120" text-anchor="middle" class="node-title">绘制检测框</text>
+  <text x="640" y="1142" text-anchor="middle" class="node-text">生成实时检测 JSON</text>
+
+  <polygon points="640,1190 770,1235 640,1280 510,1235" class="decision"/>
+  <text x="640" y="1231" text-anchor="middle" class="node-title">达到写库</text>
+  <text x="640" y="1251" text-anchor="middle" class="node-text">或快照条件？</text>
+
+  <rect x="510" y="1336" width="260" height="54" class="node"/>
+  <text x="640" y="1358" text-anchor="middle" class="node-title">继续处理下一帧</text>
+  <text x="640" y="1378" text-anchor="middle" class="node-text">未满足条件时不写库</text>
+
+  <!-- Data lane -->
+  <rect x="930" y="1160" width="240" height="56" class="data"/>
+  <text x="1050" y="1183" text-anchor="middle" class="node-title">保存快照文件</text>
+  <text x="1050" y="1204" text-anchor="middle" class="node-text">snapshots 目录</text>
+
+  <rect x="930" y="1250" width="240" height="56" class="data"/>
+  <text x="1050" y="1273" text-anchor="middle" class="node-title">写入核心数据表</text>
+  <text x="1050" y="1294" text-anchor="middle" class="node-text">记录 / 位置 / 统计</text>
+
+  <rect x="930" y="1340" width="240" height="56" class="data"/>
+  <text x="1050" y="1363" text-anchor="middle" class="node-title">历史检索与统计</text>
+  <text x="1050" y="1384" text-anchor="middle" class="node-text">读取 MySQL 和快照</text>
+
+  <!-- Main arrows -->
+  <path class="line" d="M 230 205 V 225 H 640 V 245"/>
+  <path class="line" d="M 640 305 V 325 H 230 V 345"/>
+  <path class="line" d="M 230 405 V 445"/>
+
+  <path class="line" d="M 360 490 H 430 V 475 H 510"/>
+  <text x="420" y="470" text-anchor="middle" class="label">网络流</text>
+  <path class="line" d="M 230 535 V 585"/>
+  <text x="268" y="562" text-anchor="start" class="label">本地源</text>
+
+  <path class="line" d="M 640 505 V 585"/>
+  <path class="line" d="M 230 645 V 690"/>
+  <path class="line" d="M 230 750 V 825 H 510"/>
+
+  <path class="line" d="M 640 645 V 895"/>
+  <path class="line" d="M 640 855 V 895"/>
+  <path class="line" d="M 640 955 V 995"/>
+  <path class="line" d="M 640 1055 V 1095"/>
+
+  <path class="line" d="M 510 1125 H 360"/>
+  <path class="line" d="M 640 1155 V 1190"/>
+
+  <path class="line" d="M 770 1235 H 865 V 1188 H 930"/>
+  <text x="810" y="1224" text-anchor="middle" class="label">是</text>
+  <path class="line" d="M 640 1280 V 1336"/>
+  <text x="672" y="1315" text-anchor="start" class="label">否</text>
+
+  <path class="line" d="M 1050 1216 V 1250"/>
+  <path class="line" d="M 1050 1306 V 1340"/>
+  <path class="line" d="M 930 1368 H 360"/>
+
+  <path class="line-soft" d="M 510 1363 H 430 V 825 H 510"/>
+  <text x="450" y="1338" text-anchor="start" class="label">下一帧</text>
+</svg>

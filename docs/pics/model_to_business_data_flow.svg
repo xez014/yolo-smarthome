@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="720" viewBox="0 0 1180 720">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/></marker></defs>
+  <style>
+    .t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 15px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.p{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}
+    .box{fill:#fff;stroke:#566676;stroke-width:1.35;rx:5}.dec{fill:#fff;stroke:#566676;stroke-width:1.35}.store{fill:#fff;stroke:#566676;stroke-width:1.35;rx:5}.line{stroke:#3f4a56;stroke-width:1.55;fill:none;marker-end:url(#arrow)}
+  </style>
+  <rect width="1180" height="720" fill="#fff"/>
+  <text x="590" y="42" text-anchor="middle" class="t">模型推理结果到业务数据的转换流程</text>
+  <rect x="90" y="95" width="180" height="58" class="box"/><text x="180" y="119" text-anchor="middle" class="h">视频帧</text><text x="180" y="139" text-anchor="middle" class="p">frame / JPEG bytes</text>
+  <rect x="330" y="95" width="180" height="58" class="box"/><text x="420" y="119" text-anchor="middle" class="h">YOLO11 推理</text><text x="420" y="139" text-anchor="middle" class="p">track / predict</text>
+  <rect x="570" y="95" width="180" height="58" class="box"/><text x="660" y="119" text-anchor="middle" class="h">读取模型输出</text><text x="660" y="139" text-anchor="middle" class="p">cls / conf / xyxy / id</text>
+  <rect x="810" y="95" width="180" height="58" class="box"/><text x="900" y="119" text-anchor="middle" class="h">字段转换</text><text x="900" y="139" text-anchor="middle" class="p">类别、坐标、TrackID</text>
+  <rect x="330" y="245" width="180" height="58" class="box"/><text x="420" y="269" text-anchor="middle" class="h">中文名称补全</text><text x="420" y="289" text-anchor="middle" class="p">英文类名映射</text>
+  <rect x="570" y="245" width="180" height="58" class="box"/><text x="660" y="269" text-anchor="middle" class="h">稳定性判断</text><text x="660" y="289" text-anchor="middle" class="p">连续帧 / 写库间隔</text>
+  <polygon points="900,225 1030,274 900,323 770,274" class="dec"/><text x="900" y="270" text-anchor="middle" class="h">满足持久化</text><text x="900" y="290" text-anchor="middle" class="p">条件？</text>
+  <rect x="90" y="425" width="190" height="58" class="box"/><text x="185" y="449" text-anchor="middle" class="h">返回实时结果</text><text x="185" y="469" text-anchor="middle" class="p">画面与检测列表</text>
+  <rect x="395" y="425" width="190" height="58" class="box"/><text x="490" y="449" text-anchor="middle" class="h">保存标注快照</text><text x="490" y="469" text-anchor="middle" class="p">snapshot_path</text>
+  <rect x="700" y="425" width="190" height="58" class="box"/><text x="795" y="449" text-anchor="middle" class="h">构造业务记录</text><text x="795" y="469" text-anchor="middle" class="p">DetectionRecord 字段</text>
+  <rect x="210" y="570" width="190" height="58" class="store"/><text x="305" y="594" text-anchor="middle" class="h">detection_records</text><text x="305" y="614" text-anchor="middle" class="p">检测明细</text>
+  <rect x="495" y="570" width="190" height="58" class="store"/><text x="590" y="594" text-anchor="middle" class="h">object_last_seen</text><text x="590" y="614" text-anchor="middle" class="p">最后出现位置</text>
+  <rect x="780" y="570" width="190" height="58" class="store"/><text x="875" y="594" text-anchor="middle" class="h">detection_stats</text><text x="875" y="614" text-anchor="middle" class="p">小时级统计</text>
+  <path d="M270 124 H330" class="line"/><path d="M510 124 H570" class="line"/><path d="M750 124 H810" class="line"/><path d="M900 153 V225" class="line"/><path d="M810 274 H750" class="line"/><path d="M570 274 H510" class="line"/><path d="M660 303 V360 H185 V425" class="line"/><text x="610" y="348" class="p">否</text><path d="M900 323 V360 H490 V425" class="line"/><text x="920" y="352" class="p">是</text><path d="M585 454 H700" class="line"/><path d="M795 483 V570 H305" class="line"/><path d="M795 483 V570 H590" class="line"/><path d="M795 483 V570 H875" class="line"/>
+</svg>

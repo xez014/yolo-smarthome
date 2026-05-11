@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="760" viewBox="0 0 1180 760">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/></marker></defs>
+  <style>
+    .t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 16px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.p{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}
+    .root,.box{fill:#fff;stroke:#566676;stroke-width:1.35;rx:5}.group{fill:#f8fafc;stroke:#b8c2cc;stroke-width:1.1;rx:4}.line{stroke:#3f4a56;stroke-width:1.45;fill:none;marker-end:url(#arrow)}
+  </style>
+  <rect width="1180" height="760" fill="#fff"/>
+  <text x="590" y="40" text-anchor="middle" class="t">系统功能结构图</text>
+  <rect x="390" y="78" width="400" height="58" class="root"/>
+  <text x="590" y="112" text-anchor="middle" class="h">智能家居视觉感知与历史物品检索系统</text>
+  <path d="M590 136 V175" class="line"/>
+  <path d="M140 175 H1040" stroke="#3f4a56" stroke-width="1.45" fill="none"/>
+  <g>
+    <rect x="70" y="205" width="190" height="430" class="group"/><text x="165" y="236" text-anchor="middle" class="h">认证与初始化</text>
+    <rect x="95" y="270" width="140" height="46" class="box"/><text x="165" y="298" text-anchor="middle" class="p">管理员登录</text>
+    <rect x="95" y="340" width="140" height="46" class="box"/><text x="165" y="368" text-anchor="middle" class="p">JWT 鉴权</text>
+    <rect x="95" y="410" width="140" height="46" class="box"/><text x="165" y="438" text-anchor="middle" class="p">数据库初始化</text>
+    <rect x="95" y="480" width="140" height="46" class="box"/><text x="165" y="508" text-anchor="middle" class="p">连接测试</text>
+  </g>
+  <g>
+    <rect x="280" y="205" width="190" height="430" class="group"/><text x="375" y="236" text-anchor="middle" class="h">视频感知</text>
+    <rect x="305" y="270" width="140" height="46" class="box"/><text x="375" y="298" text-anchor="middle" class="p">网络流拉取</text>
+    <rect x="305" y="340" width="140" height="46" class="box"/><text x="375" y="368" text-anchor="middle" class="p">本地视频推流</text>
+    <rect x="305" y="410" width="140" height="46" class="box"/><text x="375" y="438" text-anchor="middle" class="p">YOLO 检测</text>
+    <rect x="305" y="480" width="140" height="46" class="box"/><text x="375" y="508" text-anchor="middle" class="p">目标跟踪</text>
+  </g>
+  <g>
+    <rect x="490" y="205" width="190" height="430" class="group"/><text x="585" y="236" text-anchor="middle" class="h">历史检索</text>
+    <rect x="515" y="270" width="140" height="46" class="box"/><text x="585" y="298" text-anchor="middle" class="p">类别查询</text>
+    <rect x="515" y="340" width="140" height="46" class="box"/><text x="585" y="368" text-anchor="middle" class="p">中文关键词</text>
+    <rect x="515" y="410" width="140" height="46" class="box"/><text x="585" y="438" text-anchor="middle" class="p">最后位置</text>
+    <rect x="515" y="480" width="140" height="46" class="box"/><text x="585" y="508" text-anchor="middle" class="p">记录分页</text>
+  </g>
+  <g>
+    <rect x="700" y="205" width="190" height="430" class="group"/><text x="795" y="236" text-anchor="middle" class="h">统计展示</text>
+    <rect x="725" y="270" width="140" height="46" class="box"/><text x="795" y="298" text-anchor="middle" class="p">概览指标</text>
+    <rect x="725" y="340" width="140" height="46" class="box"/><text x="795" y="368" text-anchor="middle" class="p">类别分布</text>
+    <rect x="725" y="410" width="140" height="46" class="box"/><text x="795" y="438" text-anchor="middle" class="p">时间趋势</text>
+    <rect x="725" y="480" width="140" height="46" class="box"/><text x="795" y="508" text-anchor="middle" class="p">图表展示</text>
+  </g>
+  <g>
+    <rect x="910" y="205" width="190" height="430" class="group"/><text x="1005" y="236" text-anchor="middle" class="h">安全与运维</text>
+    <rect x="935" y="270" width="140" height="46" class="box"/><text x="1005" y="298" text-anchor="middle" class="p">接口保护</text>
+    <rect x="935" y="340" width="140" height="46" class="box"/><text x="1005" y="368" text-anchor="middle" class="p">快照清理</text>
+    <rect x="935" y="410" width="140" height="46" class="box"/><text x="1005" y="438" text-anchor="middle" class="p">健康检查</text>
+    <rect x="935" y="480" width="140" height="46" class="box"/><text x="1005" y="508" text-anchor="middle" class="p">环境变量</text>
+  </g>
+  <path d="M165 175 V205" class="line"/><path d="M375 175 V205" class="line"/><path d="M585 175 V205" class="line"/><path d="M795 175 V205" class="line"/><path d="M1005 175 V205" class="line"/>
+</svg>

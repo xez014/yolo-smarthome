@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="760" viewBox="0 0 1180 760">
+  <style>
+    .t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}
+    .h{font:700 17px "Microsoft YaHei",Arial,sans-serif;fill:#243447}
+    .p{font:14px "Microsoft YaHei",Arial,sans-serif;fill:#2f3b46}
+    .b{fill:#fbfcfd;stroke:#9aa8b5;stroke-width:1.4;rx:4}
+    .uc{fill:#fff;stroke:#566676;stroke-width:1.3}
+    .line{stroke:#3f4a56;stroke-width:1.5;fill:none}
+    .dash{stroke:#6f7f90;stroke-width:1.25;fill:none;stroke-dasharray:5 4}
+  </style>
+  <rect width="1180" height="760" fill="#fff"/>
+  <text x="590" y="42" text-anchor="middle" class="t">系统用例图</text>
+  <rect x="250" y="82" width="690" height="610" class="b"/>
+  <text x="595" y="114" text-anchor="middle" class="h">智能家居视觉感知与历史物品检索系统</text>
+
+  <circle cx="120" cy="230" r="22" fill="#fff" stroke="#566676" stroke-width="1.4"/>
+  <path d="M120 252 V330 M76 282 H164 M120 330 L82 386 M120 330 L158 386" class="line"/>
+  <text x="120" y="420" text-anchor="middle" class="p">管理员/家庭用户</text>
+
+  <rect x="995" y="176" width="118" height="56" class="b"/>
+  <text x="1054" y="199" text-anchor="middle" class="p">视频源</text>
+  <text x="1054" y="219" text-anchor="middle" class="p">摄像头/文件</text>
+
+  <ellipse cx="420" cy="180" rx="95" ry="34" class="uc"/>
+  <text x="420" y="185" text-anchor="middle" class="p">登录认证</text>
+  <ellipse cx="690" cy="180" rx="95" ry="34" class="uc"/>
+  <text x="690" y="185" text-anchor="middle" class="p">系统初始化</text>
+  <ellipse cx="420" cy="290" rx="95" ry="34" class="uc"/>
+  <text x="420" y="295" text-anchor="middle" class="p">启动检测</text>
+  <ellipse cx="690" cy="290" rx="95" ry="34" class="uc"/>
+  <text x="690" y="295" text-anchor="middle" class="p">客户端推流</text>
+  <ellipse cx="420" cy="400" rx="95" ry="34" class="uc"/>
+  <text x="420" y="405" text-anchor="middle" class="p">实时监控</text>
+  <ellipse cx="690" cy="400" rx="95" ry="34" class="uc"/>
+  <text x="690" y="405" text-anchor="middle" class="p">历史检索</text>
+  <ellipse cx="420" cy="510" rx="95" ry="34" class="uc"/>
+  <text x="420" y="515" text-anchor="middle" class="p">统计分析</text>
+  <ellipse cx="690" cy="510" rx="95" ry="34" class="uc"/>
+  <text x="690" y="515" text-anchor="middle" class="p">快照清理</text>
+
+  <path d="M165 282 L326 180" class="line"/>
+  <path d="M165 292 L326 290" class="line"/>
+  <path d="M165 302 L326 400" class="line"/>
+  <path d="M165 312 L596 400" class="line"/>
+  <path d="M165 322 L326 510" class="line"/>
+  <path d="M165 332 L596 180" class="line"/>
+  <path d="M995 204 L785 290" class="line"/>
+  <path d="M515 290 L595 290" class="dash"/>
+  <text x="555" y="278" text-anchor="middle" class="p">&lt;&lt;include&gt;&gt;</text>
+  <path d="M515 400 L595 400" class="dash"/>
+  <text x="555" y="388" text-anchor="middle" class="p">&lt;&lt;extend&gt;&gt;</text>
+</svg>

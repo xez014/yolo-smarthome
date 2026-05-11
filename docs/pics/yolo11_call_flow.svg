@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="300" viewBox="0 0 1180 300">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/>
+    </marker>
+    <style>
+      .t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}
+      .h{font:700 16px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}
+      .p{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}
+      .box{fill:#fff;stroke:#5f6f80;stroke-width:1.4;rx:5}
+      .band{fill:#f4f7fa;stroke:#b8c2cc;stroke-width:1.2}
+      .line{stroke:#3f4a56;stroke-width:1.8;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1180" height="300" fill="#fff"/>
+  <text x="590" y="40" text-anchor="middle" class="t">YOLO11 检测模型抽象调用流程</text>
+  <rect x="55" y="75" width="1070" height="150" class="band"/>
+  <rect x="85" y="112" width="160" height="76" class="box"/>
+  <text x="165" y="142" text-anchor="middle" class="h">输入预处理</text>
+  <text x="165" y="164" text-anchor="middle" class="p">缩放、归一化</text>
+  <rect x="285" y="112" width="160" height="76" class="box"/>
+  <text x="365" y="142" text-anchor="middle" class="h">骨干特征提取</text>
+  <text x="365" y="164" text-anchor="middle" class="p">多尺度视觉特征</text>
+  <rect x="485" y="112" width="160" height="76" class="box"/>
+  <text x="565" y="142" text-anchor="middle" class="h">特征融合</text>
+  <text x="565" y="164" text-anchor="middle" class="p">语义与细节融合</text>
+  <rect x="685" y="112" width="160" height="76" class="box"/>
+  <text x="765" y="142" text-anchor="middle" class="h">检测头输出</text>
+  <text x="765" y="164" text-anchor="middle" class="p">类别、框、置信度</text>
+  <rect x="885" y="112" width="160" height="76" class="box"/>
+  <text x="965" y="142" text-anchor="middle" class="h">后处理</text>
+  <text x="965" y="164" text-anchor="middle" class="p">NMS / 跟踪关联</text>
+  <path d="M245 150 H285" class="line"/>
+  <path d="M445 150 H485" class="line"/>
+  <path d="M645 150 H685" class="line"/>
+  <path d="M845 150 H885" class="line"/>
+  <text x="590" y="258" text-anchor="middle" class="p">该图用于说明系统调用层面的检测流程，不表示 YOLO11 官方逐层网络结构。</text>
+</svg>

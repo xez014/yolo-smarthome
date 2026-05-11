@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="980" viewBox="0 0 1280 980">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/></marker></defs>
+  <style>
+    .t{font:700 23px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 14px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.p{font:12px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}
+    .ent,.ds{fill:#fff;stroke:#566676;stroke-width:1.25;rx:4}.proc{fill:#fff;stroke:#566676;stroke-width:1.35}.grp{fill:#f8fafc;stroke:#b8c2cc;stroke-width:1.1}.line{stroke:#3f4a56;stroke-width:1.35;fill:none;marker-end:url(#arrow)}
+  </style>
+  <rect width="1280" height="980" fill="#fff"/>
+  <text x="640" y="38" text-anchor="middle" class="t">1 层数据流图</text>
+  <rect x="40" y="82" width="170" height="58" class="ent"/><text x="125" y="106" text-anchor="middle" class="h">E1 用户</text><text x="125" y="126" text-anchor="middle" class="p">认证、控制、查询</text>
+  <rect x="40" y="385" width="170" height="58" class="ent"/><text x="125" y="409" text-anchor="middle" class="h">E2 视频源</text><text x="125" y="429" text-anchor="middle" class="p">视频流/图像帧</text>
+  <rect x="260" y="70" width="760" height="130" class="grp"/><text x="640" y="96" text-anchor="middle" class="h">1.0 系统配置与鉴权细化</text>
+  <ellipse cx="415" cy="142" rx="92" ry="34" class="proc"/><text x="415" y="147" text-anchor="middle" class="h">1.1 登录认证</text>
+  <ellipse cx="705" cy="142" rx="92" ry="34" class="proc"/><text x="705" y="147" text-anchor="middle" class="h">1.2 系统初始化</text>
+  <rect x="1080" y="102" width="150" height="52" class="ds"/><text x="1155" y="124" text-anchor="middle" class="h">D1/D2/D3</text><text x="1155" y="143" text-anchor="middle" class="p">业务表结构</text>
+  <rect x="260" y="260" width="760" height="250" class="grp"/><text x="640" y="286" text-anchor="middle" class="h">2.0 视频感知处理细化</text>
+  <ellipse cx="370" cy="365" rx="100" ry="36" class="proc"/><text x="370" y="360" text-anchor="middle" class="h">2.1 视频接入</text><text x="370" y="380" text-anchor="middle" class="p">与帧预处理</text>
+  <ellipse cx="585" cy="365" rx="88" ry="36" class="proc"/><text x="585" y="370" text-anchor="middle" class="h">2.2 YOLO 检测</text>
+  <ellipse cx="790" cy="365" rx="100" ry="36" class="proc"/><text x="790" y="360" text-anchor="middle" class="h">2.3 跟踪</text><text x="790" y="380" text-anchor="middle" class="p">与结果整理</text>
+  <ellipse cx="585" cy="465" rx="110" ry="36" class="proc"/><text x="585" y="460" text-anchor="middle" class="h">2.4 结果持久化</text><text x="585" y="480" text-anchor="middle" class="p">与快照保存</text>
+  <rect x="1080" y="280" width="150" height="52" class="ds"/><text x="1155" y="302" text-anchor="middle" class="h">D5 模型权重</text><text x="1155" y="321" text-anchor="middle" class="p">best.pt</text>
+  <rect x="1080" y="395" width="150" height="52" class="ds"/><text x="1155" y="417" text-anchor="middle" class="h">D4 快照库</text><text x="1155" y="436" text-anchor="middle" class="p">snapshots</text>
+  <rect x="1080" y="470" width="150" height="52" class="ds"/><text x="1155" y="492" text-anchor="middle" class="h">D1/D2/D3</text><text x="1155" y="511" text-anchor="middle" class="p">明细/位置/统计</text>
+  <rect x="260" y="610" width="760" height="230" class="grp"/><text x="640" y="636" text-anchor="middle" class="h">3.0 历史检索与统计服务细化</text>
+  <ellipse cx="420" cy="720" rx="110" ry="36" class="proc"/><text x="420" y="715" text-anchor="middle" class="h">3.1 关键词解析</text><text x="420" y="735" text-anchor="middle" class="p">与历史查询</text>
+  <ellipse cx="655" cy="720" rx="105" ry="36" class="proc"/><text x="655" y="715" text-anchor="middle" class="h">3.2 统计聚合</text><text x="655" y="735" text-anchor="middle" class="p">读取</text>
+  <ellipse cx="855" cy="720" rx="90" ry="36" class="proc"/><text x="855" y="725" text-anchor="middle" class="h">3.3 快照访问</text>
+  <rect x="1080" y="660" width="150" height="52" class="ds"/><text x="1155" y="682" text-anchor="middle" class="h">D1/D2/D3</text><text x="1155" y="701" text-anchor="middle" class="p">查询数据</text>
+  <rect x="1080" y="760" width="150" height="52" class="ds"/><text x="1155" y="782" text-anchor="middle" class="h">D4 快照库</text><text x="1155" y="801" text-anchor="middle" class="p">图像文件</text>
+  <path d="M210 110 H323" class="line"/><text x="262" y="98" text-anchor="middle" class="p">管理员密码</text>
+  <path d="M507 142 H613" class="line"/><text x="560" y="130" text-anchor="middle" class="p">有效身份</text>
+  <path d="M797 142 H1080" class="line"/><text x="940" y="130" text-anchor="middle" class="p">建表请求</text>
+  <path d="M415 176 V220 H125 V140" class="line"/><text x="245" y="208" text-anchor="middle" class="p">JWT/初始化状态</text>
+  <path d="M210 414 H270" class="line"/><text x="240" y="402" text-anchor="middle" class="p">视频帧</text>
+  <path d="M210 330 H300" class="line"/><text x="254" y="318" text-anchor="middle" class="p">启动/停止命令</text>
+  <path d="M470 365 H497" class="line"/>
+  <path d="M1080 306 H673" class="line"/><text x="890" y="294" text-anchor="middle" class="p">模型权重</text>
+  <path d="M673 365 H690" class="line"/>
+  <path d="M790 401 V465 H695" class="line"/><text x="780" y="448" text-anchor="middle" class="p">结构化结果</text>
+  <path d="M790 385 H1020 V530 H125 V443" class="line"/><text x="965" y="544" text-anchor="middle" class="p">实时检测 JSON</text>
+  <path d="M695 455 H1080 V421" class="line"/><text x="890" y="442" text-anchor="middle" class="p">标注快照</text>
+  <path d="M695 475 H1080 V496" class="line"/><text x="890" y="490" text-anchor="middle" class="p">明细/位置/统计</text>
+  <path d="M210 720 H310" class="line"/><text x="260" y="708" text-anchor="middle" class="p">关键词、类别</text>
+  <path d="M530 720 H550" class="line"/>
+  <path d="M760 720 H765" class="line"/>
+  <path d="M945 720 H1080 V686" class="line"/><text x="1010" y="708" text-anchor="middle" class="p">查询条件</text>
+  <path d="M1080 686 H945" class="line"/><text x="1010" y="674" text-anchor="middle" class="p">查询结果</text>
+  <path d="M855 756 V786 H1080" class="line"/>
+  <path d="M1080 786 H945 V760" class="line"/>
+  <path d="M420 756 V900 H125 V443" class="line"/>
+  <path d="M655 756 V880 H125 V443" class="line"/>
+  <path d="M855 756 V860 H125 V443" class="line"/>
+</svg>

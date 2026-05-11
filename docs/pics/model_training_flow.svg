@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="760" viewBox="0 0 1180 760">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/></marker></defs>
+  <style>.t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 15px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.p{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}.box{fill:#fff;stroke:#566676;stroke-width:1.35;rx:5}.dec{fill:#fff;stroke:#566676;stroke-width:1.35}.line{stroke:#3f4a56;stroke-width:1.55;fill:none;marker-end:url(#arrow)}</style>
+  <rect width="1180" height="760" fill="#fff"/><text x="590" y="42" text-anchor="middle" class="t">YOLO11s 模型训练与验证流程</text>
+  <rect x="475" y="80" width="230" height="56" class="box"/><text x="590" y="104" text-anchor="middle" class="h">加载预训练权重</text><text x="590" y="124" text-anchor="middle" class="p">YOLO11s.pt</text>
+  <rect x="475" y="165" width="230" height="56" class="box"/><text x="590" y="189" text-anchor="middle" class="h">读取数据集配置</text><text x="590" y="209" text-anchor="middle" class="p">smarthome.yaml</text>
+  <rect x="475" y="250" width="230" height="56" class="box"/><text x="590" y="274" text-anchor="middle" class="h">训练集增强与批量加载</text><text x="590" y="294" text-anchor="middle" class="p">imgsz=640, batch=16</text>
+  <rect x="475" y="335" width="230" height="56" class="box"/><text x="590" y="359" text-anchor="middle" class="h">前向传播</text><text x="590" y="379" text-anchor="middle" class="p">预测框与类别概率</text>
+  <rect x="475" y="420" width="230" height="56" class="box"/><text x="590" y="444" text-anchor="middle" class="h">计算检测损失</text><text x="590" y="464" text-anchor="middle" class="p">box / cls / dfl</text>
+  <rect x="475" y="505" width="230" height="56" class="box"/><text x="590" y="529" text-anchor="middle" class="h">反向传播与参数更新</text><text x="590" y="549" text-anchor="middle" class="p">AMP 加速训练</text>
+  <polygon points="590,590 720,635 590,680 460,635" class="dec"/><text x="590" y="630" text-anchor="middle" class="h">完成 epoch?</text>
+  <rect x="810" y="607" width="210" height="56" class="box"/><text x="915" y="631" text-anchor="middle" class="h">验证集评估</text><text x="915" y="651" text-anchor="middle" class="p">Precision / Recall / mAP</text>
+  <rect x="810" y="505" width="210" height="56" class="box"/><text x="915" y="529" text-anchor="middle" class="h">保存权重文件</text><text x="915" y="549" text-anchor="middle" class="p">best.pt / last.pt</text>
+  <rect x="810" y="405" width="210" height="56" class="box"/><text x="915" y="429" text-anchor="middle" class="h">部署加载</text><text x="915" y="449" text-anchor="middle" class="p">后端生产推理</text>
+  <path d="M590 136 V165" class="line"/><path d="M590 221 V250" class="line"/><path d="M590 306 V335" class="line"/><path d="M590 391 V420" class="line"/><path d="M590 476 V505" class="line"/><path d="M590 561 V590" class="line"/><path d="M460 635 H370 V278 H475" class="line"/><text x="420" y="620" class="p">否</text><path d="M720 635 H810" class="line"/><text x="760" y="622" class="p">是</text><path d="M915 607 V561" class="line"/><path d="M915 505 V461" class="line"/>
+</svg>

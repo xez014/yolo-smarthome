@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="420" viewBox="0 0 1080 420">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/></marker></defs>
+  <style>
+    .t{font:700 23px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 16px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.p{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}
+    .ent{fill:#fff;stroke:#566676;stroke-width:1.35;rx:4}.proc{fill:#fff;stroke:#566676;stroke-width:1.5}.line{stroke:#3f4a56;stroke-width:1.6;fill:none;marker-end:url(#arrow)}
+  </style>
+  <rect width="1080" height="420" fill="#fff"/>
+  <text x="540" y="38" text-anchor="middle" class="t">顶层数据流图</text>
+  <rect x="70" y="145" width="180" height="76" class="ent"/>
+  <text x="160" y="176" text-anchor="middle" class="h">E1 管理员/用户</text>
+  <text x="160" y="198" text-anchor="middle" class="p">登录、查询、控制</text>
+  <rect x="830" y="145" width="180" height="76" class="ent"/>
+  <text x="920" y="176" text-anchor="middle" class="h">E2 视频源</text>
+  <text x="920" y="198" text-anchor="middle" class="p">摄像头 / 视频文件</text>
+  <ellipse cx="540" cy="183" rx="170" ry="76" class="proc"/>
+  <text x="540" y="172" text-anchor="middle" class="h">P0 智能家居视觉感知</text>
+  <text x="540" y="196" text-anchor="middle" class="h">与历史物品检索系统</text>
+  <path d="M250 166 H374" class="line"/>
+  <text x="312" y="154" text-anchor="middle" class="p">登录信息、配置、查询条件</text>
+  <path d="M374 210 H250" class="line"/>
+  <text x="312" y="236" text-anchor="middle" class="p">认证结果、检索和统计结果</text>
+  <path d="M830 166 H706" class="line"/>
+  <text x="768" y="154" text-anchor="middle" class="p">视频流、图像帧</text>
+  <path d="M706 210 H830" class="line"/>
+  <text x="768" y="236" text-anchor="middle" class="p">连接状态、检测反馈</text>
+</svg>

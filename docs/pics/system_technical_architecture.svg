@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/></marker></defs>
+  <style>
+    .t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 16px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.p{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}
+    .lane{fill:#f8fafc;stroke:#b8c2cc;stroke-width:1.2}.head{fill:#eef3f8;stroke:#b8c2cc;stroke-width:1.2}.box{fill:#fff;stroke:#566676;stroke-width:1.3;rx:5}.line{stroke:#3f4a56;stroke-width:1.5;fill:none;marker-end:url(#arrow)}.soft{stroke:#6f7f90;stroke-width:1.25;fill:none;stroke-dasharray:5 4;marker-end:url(#arrow)}
+  </style>
+  <rect width="1280" height="820" fill="#fff"/><text x="640" y="42" text-anchor="middle" class="t">系统技术架构图</text>
+  <rect x="70" y="80" width="1140" height="115" class="lane"/><rect x="70" y="80" width="140" height="115" class="head"/><text x="140" y="133" text-anchor="middle" class="h">客户端层</text>
+  <rect x="270" y="108" width="170" height="56" class="box"/><text x="355" y="131" text-anchor="middle" class="h">浏览器</text><text x="355" y="151" text-anchor="middle" class="p">Vue 3 / Element Plus</text>
+  <rect x="505" y="108" width="170" height="56" class="box"/><text x="590" y="131" text-anchor="middle" class="h">媒体采集</text><text x="590" y="151" text-anchor="middle" class="p">getUserMedia / Canvas</text>
+  <rect x="740" y="108" width="170" height="56" class="box"/><text x="825" y="131" text-anchor="middle" class="h">页面功能</text><text x="825" y="151" text-anchor="middle" class="p">监控 / 检索 / 统计</text>
+  <rect x="70" y="235" width="1140" height="115" class="lane"/><rect x="70" y="235" width="140" height="115" class="head"/><text x="140" y="288" text-anchor="middle" class="h">接入代理层</text>
+  <rect x="330" y="263" width="170" height="56" class="box"/><text x="415" y="286" text-anchor="middle" class="h">Nginx</text><text x="415" y="306" text-anchor="middle" class="p">静态资源 / 反向代理</text>
+  <rect x="650" y="263" width="170" height="56" class="box"/><text x="735" y="286" text-anchor="middle" class="h">WebSocket</text><text x="735" y="306" text-anchor="middle" class="p">实时状态 / 推流</text>
+  <rect x="70" y="390" width="1140" height="145" class="lane"/><rect x="70" y="390" width="140" height="145" class="head"/><text x="140" y="458" text-anchor="middle" class="h">后端服务层</text>
+  <rect x="260" y="423" width="155" height="58" class="box"/><text x="337" y="447" text-anchor="middle" class="h">FastAPI</text><text x="337" y="467" text-anchor="middle" class="p">REST / 路由</text>
+  <rect x="455" y="423" width="155" height="58" class="box"/><text x="532" y="447" text-anchor="middle" class="h">Auth</text><text x="532" y="467" text-anchor="middle" class="p">JWT 鉴权</text>
+  <rect x="650" y="423" width="155" height="58" class="box"/><text x="727" y="447" text-anchor="middle" class="h">DetectionEngine</text><text x="727" y="467" text-anchor="middle" class="p">推理 / 绘框 / 写库</text>
+  <rect x="845" y="423" width="155" height="58" class="box"/><text x="922" y="447" text-anchor="middle" class="h">Cleaner</text><text x="922" y="467" text-anchor="middle" class="p">快照清理</text>
+  <rect x="70" y="575" width="1140" height="105" class="lane"/><rect x="70" y="575" width="140" height="105" class="head"/><text x="140" y="622" text-anchor="middle" class="h">算法与数据层</text>
+  <rect x="245" y="598" width="145" height="56" class="box"/><text x="317" y="621" text-anchor="middle" class="h">YOLO11s</text><text x="317" y="641" text-anchor="middle" class="p">目标检测</text>
+  <rect x="425" y="598" width="145" height="56" class="box"/><text x="497" y="621" text-anchor="middle" class="h">ByteTrack</text><text x="497" y="641" text-anchor="middle" class="p">多目标跟踪</text>
+  <rect x="605" y="598" width="145" height="56" class="box"/><text x="677" y="621" text-anchor="middle" class="h">OpenCV</text><text x="677" y="641" text-anchor="middle" class="p">解码 / 绘图</text>
+  <rect x="785" y="598" width="145" height="56" class="box"/><text x="857" y="621" text-anchor="middle" class="h">MySQL</text><text x="857" y="641" text-anchor="middle" class="p">业务数据</text>
+  <rect x="965" y="598" width="145" height="56" class="box"/><text x="1037" y="621" text-anchor="middle" class="h">snapshots</text><text x="1037" y="641" text-anchor="middle" class="p">快照文件</text>
+  <rect x="70" y="720" width="1140" height="54" class="lane"/><rect x="70" y="720" width="140" height="54" class="head"/><text x="140" y="752" text-anchor="middle" class="h">部署层</text>
+  <text x="640" y="752" text-anchor="middle" class="p">Docker Compose 统一编排前端容器、后端容器、数据目录和健康检查</text>
+  <path d="M590 164 V263" class="line"/><path d="M355 164 V263 H415" class="line"/><path d="M825 164 V263 H735" class="line"/><path d="M415 319 V423 H337" class="line"/><path d="M735 319 V423 H727" class="line"/><path d="M727 481 V598 H317" class="line"/><path d="M727 481 V598 H497" class="line"/><path d="M727 481 V598 H677" class="line"/><path d="M727 481 V598 H857" class="line"/><path d="M727 481 V598 H1037" class="line"/><path d="M922 481 V598 H1037" class="soft"/>
+</svg>

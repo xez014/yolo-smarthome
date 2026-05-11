@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="900" viewBox="0 0 1180 900">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3f4a56"/></marker></defs>
+  <style>.t{font:700 24px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.h{font:700 15px "Microsoft YaHei",Arial,sans-serif;fill:#1f2d3d}.p{font:13px "Microsoft YaHei",Arial,sans-serif;fill:#4b5966}.box{fill:#fff;stroke:#566676;stroke-width:1.35;rx:5}.dec{fill:#fff;stroke:#566676;stroke-width:1.35}.line{stroke:#3f4a56;stroke-width:1.55;fill:none;marker-end:url(#arrow)}.dot{fill:#1f2d3d}</style>
+  <rect width="1180" height="900" fill="#fff"/><text x="590" y="42" text-anchor="middle" class="t">单轮检测活动图</text>
+  <circle cx="590" cy="85" r="13" class="dot"/><path d="M590 98 V125" class="line"/>
+  <polygon points="590,125 735,175 590,225 445,175" class="dec"/><text x="590" y="171" text-anchor="middle" class="h">视频源类型</text><text x="590" y="191" text-anchor="middle" class="p">网络流或本地源</text>
+  <rect x="250" y="275" width="220" height="58" class="box"/><text x="360" y="299" text-anchor="middle" class="h">OpenCV 拉流</text><text x="360" y="319" text-anchor="middle" class="p">网络视频源</text>
+  <rect x="710" y="275" width="220" height="58" class="box"/><text x="820" y="299" text-anchor="middle" class="h">浏览器截帧推送</text><text x="820" y="319" text-anchor="middle" class="p">WebSocket</text>
+  <rect x="480" y="390" width="220" height="58" class="box"/><text x="590" y="414" text-anchor="middle" class="h">读取视频帧</text><text x="590" y="434" text-anchor="middle" class="p">frame</text>
+  <polygon points="590,500 720,545 590,590 460,545" class="dec"/><text x="590" y="541" text-anchor="middle" class="h">帧是否有效？</text>
+  <rect x="210" y="650" width="220" height="58" class="box"/><text x="320" y="674" text-anchor="middle" class="h">返回错误或等待</text><text x="320" y="694" text-anchor="middle" class="p">不进入推理阶段</text>
+  <rect x="480" y="650" width="220" height="58" class="box"/><text x="590" y="674" text-anchor="middle" class="h">YOLO11 推理</text><text x="590" y="694" text-anchor="middle" class="p">类别与边界框</text>
+  <rect x="750" y="650" width="220" height="58" class="box"/><text x="860" y="674" text-anchor="middle" class="h">ByteTrack/单帧结果</text><text x="860" y="694" text-anchor="middle" class="p">跟踪或无状态检测</text>
+  <rect x="480" y="760" width="220" height="58" class="box"/><text x="590" y="784" text-anchor="middle" class="h">保存或返回结果</text><text x="590" y="804" text-anchor="middle" class="p">快照、写库、实时画面</text>
+  <circle cx="590" cy="850" r="13" fill="#fff" stroke="#1f2d3d" stroke-width="3"/>
+  <path d="M510 205 L360 275" class="line"/><text x="420" y="240" class="p">网络流</text><path d="M670 205 L820 275" class="line"/><text x="760" y="240" class="p">本地源</text>
+  <path d="M360 333 V419 H480" class="line"/><path d="M820 333 V419 H700" class="line"/><path d="M590 448 V500" class="line"/><path d="M460 545 H320 V650" class="line"/><text x="388" y="532" class="p">否</text><path d="M590 590 V650" class="line"/><text x="610" y="620" class="p">是</text><path d="M700 679 H750" class="line"/><path d="M860 708 V789 H700" class="line"/><path d="M590 818 V837" class="line"/><path d="M320 708 V850 H577" class="line"/>
+</svg>
